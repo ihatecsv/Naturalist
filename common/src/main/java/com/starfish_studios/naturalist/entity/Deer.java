@@ -22,25 +22,26 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.Nullable;
-import software.bernie.geckolib3.core.IAnimatable;
-import software.bernie.geckolib3.core.PlayState;
-import software.bernie.geckolib3.core.builder.AnimationBuilder;
-import software.bernie.geckolib3.core.controller.AnimationController;
-import software.bernie.geckolib3.core.event.predicate.AnimationEvent;
-import software.bernie.geckolib3.core.manager.AnimationData;
-import software.bernie.geckolib3.core.manager.AnimationFactory;
+import software.bernie.geckolib.animatable.GeoEntity;
+import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
+import software.bernie.geckolib.core.animation.AnimatableManager;
+import software.bernie.geckolib.core.animation.AnimationController;
+import software.bernie.geckolib.core.animation.AnimationState;
+import software.bernie.geckolib.core.animation.RawAnimation;
+import software.bernie.geckolib.core.object.PlayState;
+import software.bernie.geckolib.util.GeckoLibUtil;
 
 import java.util.List;
 
-public class Deer extends Animal implements IAnimatable {
-    private final AnimationFactory factory = new AnimationFactory(this);
+public class Deer extends Animal implements GeoEntity {
+    private final AnimatableInstanceCache geoCache = GeckoLibUtil.createInstanceCache(this);
     private int panicTicks = 0;
     private int eatAnimationTick;
     private EatBlockGoal eatBlockGoal;
 
     public Deer(EntityType<? extends Animal> entityType, Level level) {
         super(entityType, level);
-        this.maxUpStep = 2.0F;
+        this.setMaxUpStep(2.0F);
     }
 
     // GOALS/ATTRIBUTES/BREEDING
@@ -97,7 +98,7 @@ public class Deer extends Animal implements IAnimatable {
 
     @Override
     public void aiStep() {
-        if (this.level.isClientSide) {
+        if (level().isClientSide) {
             this.eatAnimationTick = Math.max(0, this.eatAnimationTick - 1);
         }
         super.aiStep();
@@ -144,7 +145,7 @@ public class Deer extends Animal implements IAnimatable {
         if (lastHurt) {
             int ticks = 100 + this.random.nextInt(100);
             this.panicTicks = ticks;
-            List<? extends Deer> deers = this.level.getEntitiesOfClass(Deer.class, this.getBoundingBox().inflate(8.0D, 4.0D, 8.0D));
+            List<? extends Deer> deers = this.level().getEntitiesOfClass(Deer.class, this.getBoundingBox().inflate(8.0D, 4.0D, 8.0D));
             for (Deer deer : deers) {
                 deer.panicTicks = ticks;
             }
@@ -155,7 +156,7 @@ public class Deer extends Animal implements IAnimatable {
     @Override
     public void tick() {
         super.tick();
-        if (!this.level.isClientSide) {
+        if (!this.level().isClientSide) {
             if (panicTicks >= 0) {
                 panicTicks--;
             }
@@ -165,35 +166,35 @@ public class Deer extends Animal implements IAnimatable {
         }
     }
 
+    @Override
+    public AnimatableInstanceCache getAnimatableInstanceCache() {
+        return this.geoCache;
+    }
+
     // ANIMATION
 
-    private <E extends IAnimatable> PlayState predicate(AnimationEvent<E> event) {
+    private <E extends Deer> PlayState predicate(final AnimationState<E> event) {
         if (this.isEating()) {
-            event.getController().setAnimation(new AnimationBuilder().addAnimation("deer.eat", true));
+            event.getController().setAnimation(RawAnimation.begin().thenLoop("deer.eat"));
             event.getController().setAnimationSpeed(1.0D);
         } else if (this.getDeltaMovement().horizontalDistanceSqr() > 1.0E-6) {
             if (this.isSprinting()) {
-                event.getController().setAnimation(new AnimationBuilder().addAnimation("deer.run", true));
+                event.getController().setAnimation(RawAnimation.begin().thenLoop("deer.run"));
                 event.getController().setAnimationSpeed(2.0D);
             } else {
-                event.getController().setAnimation(new AnimationBuilder().addAnimation("deer.walk", true));
+                event.getController().setAnimation(RawAnimation.begin().thenLoop("deer.walk"));
                 event.getController().setAnimationSpeed(1.25D);
             }
         } else {
-            event.getController().setAnimation(new AnimationBuilder().addAnimation("deer.idle", true));
+            event.getController().setAnimation(RawAnimation.begin().thenLoop("deer.idle"));
             event.getController().setAnimationSpeed(1.0D);
         }
         return PlayState.CONTINUE;
     }
 
     @Override
-    public void registerControllers(AnimationData data) {
-        data.setResetSpeedInTicks(10);
-        data.addAnimationController(new AnimationController<>(this, "controller", 10, this::predicate));
-    }
-
-    @Override
-    public AnimationFactory getFactory() {
-        return factory;
+    public void registerControllers(final AnimatableManager.ControllerRegistrar controllers) {
+        // data.setResetSpeedInTicks(10);
+        controllers.add(new AnimationController<>(this, "controller", 10, this::predicate));
     }
 }

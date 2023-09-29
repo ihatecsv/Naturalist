@@ -1,7 +1,5 @@
 package com.starfish_studios.naturalist.block;
 
-import com.starfish_studios.naturalist.entity.Butterfly;
-import com.starfish_studios.naturalist.registry.NaturalistEntityTypes;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
@@ -24,7 +22,6 @@ import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
 import javax.annotation.Nullable;
-import java.util.Random;
 
 public class ChrysalisBlock extends HorizontalDirectionalBlock {
     public static final IntegerProperty AGE = BlockStateProperties.AGE_3;
@@ -54,9 +51,11 @@ public class ChrysalisBlock extends HorizontalDirectionalBlock {
             pLevel.removeBlock(pPos, false);
             pLevel.playSound(null, pPos, SoundEvents.WOOD_BREAK, SoundSource.BLOCKS, 0.7F, 0.9F + pRandom.nextFloat() * 0.2F);
             pLevel.levelEvent(2001, pPos, Block.getId(pState));
+            /*
             Butterfly butterfly = NaturalistEntityTypes.BUTTERFLY.get().create(pLevel);
             butterfly.moveTo(pPos.getX() + 0.5D, pPos.getY() + 0.5D, pPos.getZ() + 0.5D, 0.0F, 0.0F);
             pLevel.addFreshEntity(butterfly);
+            */
         }
     }
 

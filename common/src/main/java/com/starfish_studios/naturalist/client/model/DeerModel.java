@@ -6,16 +6,16 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
-import org.jetbrains.annotations.Nullable;
-import software.bernie.geckolib3.core.event.predicate.AnimationEvent;
-import software.bernie.geckolib3.core.processor.IBone;
-import software.bernie.geckolib3.model.AnimatedGeoModel;
-import software.bernie.geckolib3.model.provider.data.EntityModelData;
+import software.bernie.geckolib.constant.DataTickets;
+import software.bernie.geckolib.core.animatable.model.CoreGeoBone;
+import software.bernie.geckolib.core.animation.AnimationState;
+import software.bernie.geckolib.model.GeoModel;
+import software.bernie.geckolib.model.data.EntityModelData;
 
 import java.util.List;
 
 @Environment(EnvType.CLIENT)
-public class DeerModel extends AnimatedGeoModel<Deer> {
+public class DeerModel extends GeoModel<Deer> {
     @Override
     public ResourceLocation getModelResource(Deer deer) {
         return new ResourceLocation(Naturalist.MOD_ID, "geo/deer.geo.json");
@@ -36,15 +36,15 @@ public class DeerModel extends AnimatedGeoModel<Deer> {
     }
 
     @Override
-    public void setLivingAnimations(Deer deer, Integer uniqueID, @Nullable AnimationEvent customPredicate) {
-        super.setLivingAnimations(deer, uniqueID, customPredicate);
+    public void setCustomAnimations(Deer deer,  long instanceId, AnimationState<Deer> animationState) {
+        super.setCustomAnimations(deer, instanceId, animationState);
 
-        if (customPredicate == null) return;
+        if (animationState == null) return;
 
-        List<EntityModelData> extraDataOfType = customPredicate.getExtraDataOfType(EntityModelData.class);
-        IBone head = this.getAnimationProcessor().getBone("head");
-        IBone left_antler = this.getAnimationProcessor().getBone("left_antler");
-        IBone right_antler = this.getAnimationProcessor().getBone("right_antler");
+        EntityModelData extraDataOfType = animationState.getData(DataTickets.ENTITY_MODEL_DATA);
+        CoreGeoBone head = this.getAnimationProcessor().getBone("head");
+        CoreGeoBone left_antler = this.getAnimationProcessor().getBone("left_antler");
+        CoreGeoBone right_antler = this.getAnimationProcessor().getBone("right_antler");
 
         if (deer.isBaby()) {
             head.setScaleX(1.6F);
@@ -56,8 +56,8 @@ public class DeerModel extends AnimatedGeoModel<Deer> {
         right_antler.setHidden(deer.isBaby());
 
         if (!deer.isEating()) {
-            head.setRotationX(extraDataOfType.get(0).headPitch * Mth.DEG_TO_RAD);
-            head.setRotationY(extraDataOfType.get(0).netHeadYaw * Mth.DEG_TO_RAD);
+            head.setRotX(extraDataOfType.headPitch() * Mth.DEG_TO_RAD);
+            head.setRotY(extraDataOfType.netHeadYaw() * Mth.DEG_TO_RAD);
         }
     }
 }

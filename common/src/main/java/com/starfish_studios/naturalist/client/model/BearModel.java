@@ -42,21 +42,21 @@ public class BearModel extends GeoModel<Bear> {
     }
 
     @Override
-    public void setCustomAnimations(Bear bear, long instanceId, AnimationState<Bear> animationState) {
-        super.setCustomAnimations(bear, instanceId, animationState);
+    public void setCustomAnimations(Bear animatable, long instanceId, AnimationState<Bear> animationState) {
+        super.setCustomAnimations(animatable, instanceId, animationState);
 
         if (animationState == null) return;
 
         EntityModelData extraDataOfType = animationState.getData(DataTickets.ENTITY_MODEL_DATA);
         CoreGeoBone head = this.getAnimationProcessor().getBone("head");
 
-        if (bear.isBaby()) {
+        if (animatable.isBaby()) {
             head.setScaleX(1.8F);
             head.setScaleY(1.8F);
             head.setScaleZ(1.8F);
         }
 
-        if (!bear.isSleeping() && !bear.isEating() && !bear.isSitting()) {
+        if (!animatable.isSleeping() && !animatable.isEating() && !animatable.isSitting()) {
             head.setRotX(extraDataOfType.headPitch() * Mth.DEG_TO_RAD);
             head.setRotY(extraDataOfType.netHeadYaw() * Mth.DEG_TO_RAD);
         }

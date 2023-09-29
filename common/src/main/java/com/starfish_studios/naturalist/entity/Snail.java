@@ -10,7 +10,6 @@ import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
-import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.damagesource.DamageSource;
@@ -20,7 +19,6 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.ai.goal.WaterAvoidingRandomStrollGoal;
 import net.minecraft.world.entity.ai.targeting.TargetingConditions;
-import net.minecraft.world.entity.animal.AbstractFish;
 import net.minecraft.world.entity.animal.Animal;
 import net.minecraft.world.entity.animal.Bucketable;
 import net.minecraft.world.entity.player.Player;
@@ -31,21 +29,22 @@ import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.Nullable;
-import software.bernie.geckolib3.core.IAnimatable;
-import software.bernie.geckolib3.core.PlayState;
-import software.bernie.geckolib3.core.builder.AnimationBuilder;
-import software.bernie.geckolib3.core.controller.AnimationController;
-import software.bernie.geckolib3.core.event.SoundKeyframeEvent;
-import software.bernie.geckolib3.core.event.predicate.AnimationEvent;
-import software.bernie.geckolib3.core.manager.AnimationData;
-import software.bernie.geckolib3.core.manager.AnimationFactory;
+import software.bernie.geckolib.animatable.GeoEntity;
+import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
+import software.bernie.geckolib.core.animation.AnimatableManager;
+import software.bernie.geckolib.core.animation.AnimationController;
+import software.bernie.geckolib.core.animation.AnimationState;
+import software.bernie.geckolib.core.animation.RawAnimation;
+import software.bernie.geckolib.core.keyframe.event.SoundKeyframeEvent;
+import software.bernie.geckolib.core.object.PlayState;
+import software.bernie.geckolib.util.GeckoLibUtil;
 
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Optional;
 
-public class Snail extends Animal implements IAnimatable, Bucketable {
-    private final AnimationFactory factory = new AnimationFactory(this);
+public class Snail extends Animal implements GeoEntity, Bucketable {
+    private final AnimatableInstanceCache geoCache = GeckoLibUtil.createInstanceCache(this);
     private static final EntityDataAccessor<Boolean> FROM_BUCKET = SynchedEntityData.defineId(Snail.class, EntityDataSerializers.BOOLEAN);
 
     public Snail(EntityType<? extends Animal> type, Level level) {
@@ -79,9 +78,9 @@ public class Snail extends Animal implements IAnimatable, Bucketable {
     @Override
     public void aiStep() {
         super.aiStep();
-        for (Player player : level.getEntitiesOfClass(Player.class, this.getBoundingBox())) {
-            if (!player.isOnGround() && EnchantmentHelper.getEnchantmentLevel(Enchantments.FALL_PROTECTION, player) == 0 && !this.hasCustomName()) {
-                this.hurt(DamageSource.playerAttack(player), 5.0F);
+        for (Player player : level().getEntitiesOfClass(Player.class, this.getBoundingBox())) {
+            if (!player.onGround() && EnchantmentHelper.getEnchantmentLevel(Enchantments.FALL_PROTECTION, player) == 0 && !this.hasCustomName()) {
+                this.hurt(this.damageSources().playerAttack(player), 5.0F);
             }
         }
     }
@@ -129,7 +128,7 @@ public class Snail extends Animal implements IAnimatable, Bucketable {
             entity.saveToBucketTag(bucketStack);
             ItemStack resultStack = ItemUtils.createFilledResult(stack, player, bucketStack, false);
             player.setItemInHand(hand, resultStack);
-            Level level = entity.level;
+            Level level = entity.level();
             if (!level.isClientSide) {
                 CriteriaTriggers.FILLED_BUCKET.trigger((ServerPlayer)player, bucketStack);
             }
@@ -172,42 +171,39 @@ public class Snail extends Animal implements IAnimatable, Bucketable {
     // ANIMATION
 
     private boolean canHide() {
-        List<Player> players = this.level.getNearbyPlayers(TargetingConditions.forNonCombat().range(5.0D).selector(EntitySelector.NO_CREATIVE_OR_SPECTATOR::test), this, this.getBoundingBox().inflate(5.0D, 3.0D, 5.0D));
+        List<Player> players = this.level().getNearbyPlayers(TargetingConditions.forNonCombat().range(5.0D).selector(EntitySelector.NO_CREATIVE_OR_SPECTATOR::test), this, this.getBoundingBox().inflate(5.0D, 3.0D, 5.0D));
         return !players.isEmpty();
     }
-
-    private <E extends IAnimatable> PlayState predicate(AnimationEvent<E> event) {
+    public AnimatableInstanceCache getAnimatableInstanceCache() {
+        return this.geoCache;
+    }
+    private <E extends Snail> PlayState predicate(final AnimationState<E> event) {
         if (this.canHide()) {
-            event.getController().setAnimation(new AnimationBuilder().addAnimation("snail.retreat", true));
+            event.getController().setAnimation(RawAnimation.begin().thenLoop("snail.retreat"));
         } else {
-            event.getController().setAnimation(new AnimationBuilder().addAnimation("snail.move", true));
+            event.getController().setAnimation(RawAnimation.begin().thenLoop("snail.move"));
         }
         return PlayState.CONTINUE;
     }
 
     private void soundListener(SoundKeyframeEvent<Snail> event) {
-        Snail snail = event.getEntity();
-        if (snail.level.isClientSide) {
-            if (event.sound.equals("forward")) {
-                snail.level.playLocalSound(snail.getX(), snail.getY(), snail.getZ(), NaturalistSoundEvents.SNAIL_FORWARD.get(), snail.getSoundSource(), 0.5F, 1.0F, false);
+        Snail snail = event.getAnimatable();
+        if (snail.level().isClientSide) {
+            if (event.getKeyframeData().getSound().equals("forward")) {
+                snail.level().playLocalSound(snail.getX(), snail.getY(), snail.getZ(), NaturalistSoundEvents.SNAIL_FORWARD.get(), snail.getSoundSource(), 0.5F, 1.0F, false);
             }
-            if (event.sound.equals("back")) {
-                snail.level.playLocalSound(snail.getX(), snail.getY(), snail.getZ(), NaturalistSoundEvents.SNAIL_BACK.get(), snail.getSoundSource(), 0.5F, 1.0F, false);
+            if (event.getKeyframeData().getSound().equals("back")) {
+                snail.level().playLocalSound(snail.getX(), snail.getY(), snail.getZ(), NaturalistSoundEvents.SNAIL_BACK.get(), snail.getSoundSource(), 0.5F, 1.0F, false);
             }
         }
     }
 
     @Override
-    public void registerControllers(AnimationData data) {
-        data.setResetSpeedInTicks(10);
+    public void registerControllers(final AnimatableManager.ControllerRegistrar controllers) {
+        // data.setResetSpeedInTicks(10);
         AnimationController<Snail> controller = new AnimationController<>(this, "controller", 10, this::predicate);
-        controller.registerSoundListener(this::soundListener);
-        data.addAnimationController(controller);
-    }
-
-    @Override
-    public AnimationFactory getFactory() {
-        return factory;
+        controller.setSoundKeyframeHandler(this::soundListener);
+        controllers.add(controller);
     }
 
     static class HideGoal extends Goal {

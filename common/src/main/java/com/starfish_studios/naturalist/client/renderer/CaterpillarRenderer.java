@@ -12,7 +12,7 @@ import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.Nullable;
-import software.bernie.geckolib3.renderers.geo.GeoEntityRenderer;
+import software.bernie.geckolib.renderer.GeoEntityRenderer;
 
 @Environment(EnvType.CLIENT)
 public class CaterpillarRenderer extends GeoEntityRenderer<Caterpillar> {
@@ -23,10 +23,9 @@ public class CaterpillarRenderer extends GeoEntityRenderer<Caterpillar> {
 
     @Override
     public ResourceLocation getTextureLocation(Caterpillar entity) {
-        return ClientPlatformHelper.arch$getTextureLocation(modelProvider, entity);
+        return ClientPlatformHelper.arch$getTextureLocation(this.model, entity);
     }
 
-    @Override
     public RenderType getRenderType(Caterpillar animatable, float partialTicks, PoseStack stack, @Nullable MultiBufferSource renderTypeBuffer, @Nullable VertexConsumer vertexBuilder, int packedLightIn, ResourceLocation textureLocation) {
         return RenderType.entityCutoutNoCull(textureLocation);
     }

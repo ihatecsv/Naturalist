@@ -12,7 +12,7 @@ import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.Nullable;
-import software.bernie.geckolib3.renderers.geo.GeoEntityRenderer;
+import software.bernie.geckolib.renderer.GeoEntityRenderer;
 
 @Environment(EnvType.CLIENT)
 public class RhinoRenderer extends GeoEntityRenderer<Rhino> {
@@ -23,18 +23,17 @@ public class RhinoRenderer extends GeoEntityRenderer<Rhino> {
 
     @Override
     public ResourceLocation getTextureLocation(Rhino entity) {
-        return ClientPlatformHelper.arch$getTextureLocation(modelProvider, entity);
+        return ClientPlatformHelper.arch$getTextureLocation(this.model, entity);
     }
 
     @Override
-    public void renderEarly(Rhino animatable, PoseStack stackIn, float ticks, MultiBufferSource renderTypeBuffer, VertexConsumer vertexBuilder, int packedLightIn, int packedOverlayIn, float red, float green, float blue, float partialTicks) {
-        super.renderEarly(animatable, stackIn, ticks, renderTypeBuffer, vertexBuilder, packedLightIn, packedOverlayIn, red, green, blue, partialTicks);
+    public void render(Rhino animatable, float entityYaw, float partialTick, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight) {
+        super.render(animatable, entityYaw, partialTick, poseStack, bufferSource, packedLight);
         if (animatable.isBaby()) {
-            stackIn.scale(0.5F, 0.5F, 0.5F);
+            poseStack.scale(0.5F, 0.5F, 0.5F);
         }
     }
 
-    @Override
     public RenderType getRenderType(Rhino animatable, float partialTicks, PoseStack stack, @Nullable MultiBufferSource renderTypeBuffer, @Nullable VertexConsumer vertexBuilder, int packedLightIn, ResourceLocation textureLocation) {
         return RenderType.entityCutoutNoCull(textureLocation);
     }

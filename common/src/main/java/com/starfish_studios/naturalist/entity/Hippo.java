@@ -36,27 +36,27 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.pathfinder.BlockPathTypes;
 import net.minecraft.world.level.pathfinder.Path;
 import org.jetbrains.annotations.Nullable;
-import software.bernie.geckolib3.core.AnimationState;
-import software.bernie.geckolib3.core.IAnimatable;
-import software.bernie.geckolib3.core.PlayState;
-import software.bernie.geckolib3.core.builder.AnimationBuilder;
-import software.bernie.geckolib3.core.controller.AnimationController;
-import software.bernie.geckolib3.core.event.predicate.AnimationEvent;
-import software.bernie.geckolib3.core.manager.AnimationData;
-import software.bernie.geckolib3.core.manager.AnimationFactory;
+import software.bernie.geckolib.animatable.GeoEntity;
+import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
+import software.bernie.geckolib.core.animation.AnimatableManager;
+import software.bernie.geckolib.core.animation.AnimationController;
+import software.bernie.geckolib.core.animation.RawAnimation;
+import software.bernie.geckolib.core.animation.AnimationState;
+import software.bernie.geckolib.core.object.PlayState;
+import software.bernie.geckolib.util.GeckoLibUtil;
 
 import java.util.EnumSet;
 import java.util.List;
 
-public class Hippo extends Animal implements IAnimatable {
-    private final AnimationFactory factory = new AnimationFactory(this);
+public class Hippo extends Animal implements GeoEntity {
+    private final AnimatableInstanceCache geoCache = GeckoLibUtil.createInstanceCache(this);
     private static final Ingredient FOOD_ITEMS = Ingredient.of(Blocks.MELON.asItem());
     private int eatingTicks;
 
     public Hippo(EntityType<? extends Animal> entityType, Level level) {
         super(entityType, level);
         this.setPathfindingMalus(BlockPathTypes.WATER, 0.0f);
-        this.maxUpStep = 1.0f;
+        this.setMaxUpStep(1.0f);
     }
 
     public static AttributeSupplier.Builder createAttributes() {
@@ -103,13 +103,13 @@ public class Hippo extends Animal implements IAnimatable {
         ItemStack itemStack = player.getItemInHand(hand);
         if (this.isFood(itemStack)) {
             int age = this.getAge();
-            if (!this.level.isClientSide && age == 0 && this.canFallInLove()) {
+            if (!this.level().isClientSide && age == 0 && this.canFallInLove()) {
                 this.eatingTicks = 10;
                 this.setItemSlot(EquipmentSlot.MAINHAND, itemStack.copy());
                 this.swing(InteractionHand.MAIN_HAND);
                 float yRot = (this.getYRot() + 90) * Mth.DEG_TO_RAD;
-                ((ServerLevel)level).sendParticles(new BlockParticleOption(ParticleTypes.BLOCK, Blocks.MELON.defaultBlockState()), this.getX() + Math.cos(yRot), this.getY() + 0.6, this.getZ() + Math.sin(yRot), 100, this.getBbWidth() / 4.0F, this.getBbHeight() / 4.0F, this.getBbWidth() / 4.0F, 0.05D);
-                ((ServerLevel)level).sendParticles(new ItemParticleOption(ParticleTypes.ITEM, new ItemStack(Items.MELON_SLICE)), this.getX() + Math.cos(yRot), this.getY() + 0.6, this.getZ() + Math.sin(yRot), 100, this.getBbWidth() / 4.0F, this.getBbHeight() / 4.0F, this.getBbWidth() / 4.0F, 0.05D);
+                ((ServerLevel)level()).sendParticles(new BlockParticleOption(ParticleTypes.BLOCK, Blocks.MELON.defaultBlockState()), this.getX() + Math.cos(yRot), this.getY() + 0.6, this.getZ() + Math.sin(yRot), 100, this.getBbWidth() / 4.0F, this.getBbHeight() / 4.0F, this.getBbWidth() / 4.0F, 0.05D);
+                ((ServerLevel)level()).sendParticles(new ItemParticleOption(ParticleTypes.ITEM, new ItemStack(Items.MELON_SLICE)), this.getX() + Math.cos(yRot), this.getY() + 0.6, this.getZ() + Math.sin(yRot), 100, this.getBbWidth() / 4.0F, this.getBbHeight() / 4.0F, this.getBbWidth() / 4.0F, 0.05D);
                 this.playSound(SoundEvents.HORSE_EAT);
                 this.playSound(SoundEvents.WOOD_BREAK);
                 this.usePlayerItem(player, hand, itemStack);
@@ -119,9 +119,9 @@ public class Hippo extends Animal implements IAnimatable {
             if (this.isBaby()) {
                 this.usePlayerItem(player, hand, itemStack);
                 this.ageUp(Animal.getSpeedUpSecondsWhenFeeding(-age), true);
-                return InteractionResult.sidedSuccess(this.level.isClientSide);
+                return InteractionResult.sidedSuccess(this.level().isClientSide);
             }
-            if (this.level.isClientSide) {
+            if (this.level().isClientSide) {
                 return InteractionResult.CONSUME;
             }
         }
@@ -131,7 +131,7 @@ public class Hippo extends Animal implements IAnimatable {
     @Override
     public void aiStep() {
         super.aiStep();
-        if (!this.level.isClientSide) {
+        if (!this.level().isClientSide) {
             if (this.eatingTicks > 0) {
                 this.eatingTicks--;
             } else {
@@ -172,37 +172,35 @@ public class Hippo extends Animal implements IAnimatable {
     protected SoundEvent getAmbientSound() {
         return NaturalistSoundEvents.HIPPO_AMBIENT.get();
     }
+    public AnimatableInstanceCache getAnimatableInstanceCache() {
+        return this.geoCache;
+    }
 
-    private <E extends IAnimatable> PlayState predicate(AnimationEvent<E> event) {
+    private <E extends Hippo> PlayState predicate(final AnimationState<E> event) {
         if (this.getDeltaMovement().horizontalDistanceSqr() > 1.0E-6) {
-            event.getController().setAnimation(new AnimationBuilder().addAnimation("hippo.walk", true));
-            event.getController().setAnimationSpeed(1.0D);
+            event.getController().setAnimation(RawAnimation.begin().thenLoop("hippo.walk"));
+            // event.getController().setAnimationSpeed(1.0D);
         } else {
-            event.getController().setAnimation(new AnimationBuilder().addAnimation("hippo.idle", true));
-            event.getController().setAnimationSpeed(1.0D);
+            event.getController().setAnimation(RawAnimation.begin().thenLoop("hippo.idle"));
+            // event.getController().setAnimationSpeed(1.0D);
         }
         return PlayState.CONTINUE;
     }
 
-    private <E extends IAnimatable> PlayState attackPredicate(AnimationEvent<E> event) {
-        if (this.swinging && event.getController().getAnimationState().equals(AnimationState.Stopped)) {
-            event.getController().markNeedsReload();
-            event.getController().setAnimation(new AnimationBuilder().addAnimation("hippo.bite", false));
+    private <E extends Hippo> PlayState attackPredicate(final AnimationState<E> event) {
+        if (this.swinging && event.getController().getAnimationState().equals(AnimationController.State.STOPPED)) {
+            // event.getController().markNeedsReload();
+            event.getController().setAnimation(RawAnimation.begin().thenPlay("hippo.bite"));
             this.swinging = false;
         }
         return PlayState.CONTINUE;
     }
 
     @Override
-    public void registerControllers(AnimationData data) {
-        data.setResetSpeedInTicks(10);
-        data.addAnimationController(new AnimationController<>(this, "controller", 10, this::predicate));
-        data.addAnimationController(new AnimationController<>(this, "attackController", 0, this::attackPredicate));
-    }
-
-    @Override
-    public AnimationFactory getFactory() {
-        return factory;
+    public void registerControllers(final AnimatableManager.ControllerRegistrar controllers) {
+        // data.setResetSpeedInTicks(10);
+        controllers.add(new AnimationController<>(this, "controller", 10, this::predicate));
+        controllers.add(new AnimationController<>(this, "attackController", 0, this::attackPredicate));
     }
 
     static class HippoAttackBoatsGoal extends Goal {
@@ -228,12 +226,12 @@ public class Hippo extends Animal implements IAnimatable {
             if (this.mob.isBaby()) {
                 return false;
             }
-            long gameTime = this.mob.level.getGameTime();
+            long gameTime = this.mob.level().getGameTime();
             if (gameTime - this.lastCanUseCheck < 20L) {
                 return false;
             }
             this.lastCanUseCheck = gameTime;
-            List<Boat> entities = this.mob.level.getEntitiesOfClass(Boat.class, this.mob.getBoundingBox().inflate(8, 4, 8));
+            List<Boat> entities = this.mob.level().getEntitiesOfClass(Boat.class, this.mob.getBoundingBox().inflate(8, 4, 8));
             if (!entities.isEmpty()) {
                 this.target = entities.get(0);
             }

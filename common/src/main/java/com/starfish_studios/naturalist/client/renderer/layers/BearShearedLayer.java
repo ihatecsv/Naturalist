@@ -8,8 +8,10 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.ResourceLocation;
 import software.bernie.geckolib.cache.object.BakedGeoModel;
+import software.bernie.geckolib.cache.texture.AutoGlowingTexture;
 import software.bernie.geckolib.renderer.GeoRenderer;
 import software.bernie.geckolib.renderer.layer.GeoRenderLayer;
 
@@ -22,14 +24,12 @@ public class BearShearedLayer extends GeoRenderLayer<Bear> {
     }
 
     @Override
-    public void render(PoseStack matrixStackIn, Bear bear, BakedGeoModel bakedModel, RenderType renderType2, 
-                MultiBufferSource bufferIn, VertexConsumer buffer, float partialTicks,
+    public void render(PoseStack poseStack, Bear animatable, BakedGeoModel bakedModel, RenderType renderType,
+                MultiBufferSource bufferSource, VertexConsumer buffer, float partialTicks,
                 int packedLightIn, int packedOverlay) {
-        if (bear.isSheared()) {
-            RenderType renderType = RenderType.entityCutoutNoCull(LAYER);
-            matrixStackIn.pushPose();
-            this.getRenderer().defaultRender(matrixStackIn, bear, bufferIn, renderType, buffer, packedOverlay, partialTicks, packedLightIn);
-            matrixStackIn.popPose();
+        if (animatable.isSheared()) {
+            RenderType renderLayer = RenderType.entityCutoutNoCull(LAYER);
+            getRenderer().reRender(getDefaultBakedModel(animatable), poseStack, bufferSource, animatable, renderLayer, bufferSource.getBuffer(renderLayer), partialTicks, packedLightIn, OverlayTexture.NO_OVERLAY, 1, 1, 1, 1);
         }
     }
 }

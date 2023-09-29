@@ -40,19 +40,21 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.pathfinder.BlockPathTypes;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
-import software.bernie.geckolib3.core.IAnimatable;
-import software.bernie.geckolib3.core.PlayState;
-import software.bernie.geckolib3.core.builder.AnimationBuilder;
-import software.bernie.geckolib3.core.controller.AnimationController;
-import software.bernie.geckolib3.core.event.predicate.AnimationEvent;
-import software.bernie.geckolib3.core.manager.AnimationData;
-import software.bernie.geckolib3.core.manager.AnimationFactory;
+import software.bernie.geckolib.animatable.GeoEntity;
+import software.bernie.geckolib.core.animatable.GeoAnimatable;
+import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
+import software.bernie.geckolib.core.animation.AnimatableManager;
+import software.bernie.geckolib.core.animation.AnimationController;
+import software.bernie.geckolib.core.animation.AnimationState;
+import software.bernie.geckolib.core.animation.RawAnimation;
+import software.bernie.geckolib.core.object.PlayState;
+import software.bernie.geckolib.util.GeckoLibUtil;
 
 import java.util.EnumSet;
 import java.util.List;
 
-public class Vulture extends PathfinderMob implements IAnimatable, FlyingAnimal {
-    private final AnimationFactory factory = new AnimationFactory(this);
+public class Vulture extends PathfinderMob implements GeoEntity, FlyingAnimal {
+    private final AnimatableInstanceCache geoCache = GeckoLibUtil.createInstanceCache(this);
     private static final Ingredient FOOD_ITEMS = Ingredient.of(Items.ROTTEN_FLESH);
     private int ticksSinceEaten;
 
@@ -65,8 +67,9 @@ public class Vulture extends PathfinderMob implements IAnimatable, FlyingAnimal 
         this.setPathfindingMalus(BlockPathTypes.WATER_BORDER, 16.0F);
         this.setPathfindingMalus(BlockPathTypes.COCOA, -1.0F);
         this.setPathfindingMalus(BlockPathTypes.FENCE, -1.0F);
-        this.setPathfindingMalus(BlockPathTypes.DANGER_CACTUS, 0.0F);
-        this.setPathfindingMalus(BlockPathTypes.DAMAGE_CACTUS, 0.0F);
+        this.setPathfindingMalus(BlockPathTypes.FENCE, -1.0F);
+        this.setPathfindingMalus(BlockPathTypes.DANGER_OTHER, 0.0F);
+        this.setPathfindingMalus(BlockPathTypes.DAMAGE_OTHER, 0.0F);
     }
 
     public static AttributeSupplier.Builder createAttributes() {
@@ -92,7 +95,7 @@ public class Vulture extends PathfinderMob implements IAnimatable, FlyingAnimal 
 
     @Override
     public boolean isFlying() {
-        return !this.isOnGround();
+        return !this.onGround();
     }
 
     @Override
@@ -141,7 +144,7 @@ public class Vulture extends PathfinderMob implements IAnimatable, FlyingAnimal 
 
     @Override
     public boolean isInvulnerableTo(DamageSource pSource) {
-        return pSource.equals(DamageSource.CACTUS) || super.isInvulnerableTo(pSource);
+        return pSource.equals(this.damageSources().cactus()) || super.isInvulnerableTo(pSource);
     }
 
     @Override
@@ -153,7 +156,7 @@ public class Vulture extends PathfinderMob implements IAnimatable, FlyingAnimal 
             damage += livingEntity.getMobType().equals(MobType.UNDEAD) ? damage : 0;
             knockback += (float)EnchantmentHelper.getKnockbackBonus(this);
         }
-        if (shouldHurt = target.hurt(DamageSource.mobAttack(this), damage)) {
+        if (shouldHurt = target.hurt(target.damageSources().mobAttack(this), damage)) {
             if (knockback > 0.0f && target instanceof LivingEntity) {
                 ((LivingEntity)target).knockback(knockback * 0.5f, Mth.sin(this.getYRot() * ((float)Math.PI / 180)), -Mth.cos(this.getYRot() * ((float)Math.PI / 180)));
                 this.setDeltaMovement(this.getDeltaMovement().multiply(0.6, 1.0, 0.6));
@@ -167,28 +170,28 @@ public class Vulture extends PathfinderMob implements IAnimatable, FlyingAnimal 
     @Override
     public void aiStep() {
         super.aiStep();
-        this.level.getProfiler().push("looting");
-        if (!this.level.isClientSide && this.canPickUpLoot() && this.isAlive() && !this.dead && this.level.getGameRules().getBoolean(GameRules.RULE_MOBGRIEFING)) {
-            for(ItemEntity itementity : this.level.getEntitiesOfClass(ItemEntity.class, this.getBoundingBox().inflate(1.0D, 1.0D, 1.0D))) {
+        this.level().getProfiler().push("looting");
+        if (!this.level().isClientSide && this.canPickUpLoot() && this.isAlive() && !this.dead && this.level().getGameRules().getBoolean(GameRules.RULE_MOBGRIEFING)) {
+            for(ItemEntity itementity : this.level().getEntitiesOfClass(ItemEntity.class, this.getBoundingBox().inflate(1.0D, 1.0D, 1.0D))) {
                 if (!itementity.isRemoved() && !itementity.getItem().isEmpty() && this.wantsToPickUp(itementity.getItem())) {
                     this.pickUpItem(itementity);
                 }
             }
         }
-        this.level.getProfiler().pop();
-        if (!this.level.isClientSide && this.isAlive() && this.isEffectiveAi()) {
+        this.level().getProfiler().pop();
+        if (!this.level().isClientSide && this.isAlive() && this.isEffectiveAi()) {
             ++this.ticksSinceEaten;
             ItemStack stack = this.getItemBySlot(EquipmentSlot.MAINHAND);
             if (stack.getItem().isEdible()) {
                 if (this.ticksSinceEaten > 600) {
-                    ItemStack finishedStack = stack.finishUsingItem(this.level, this);
+                    ItemStack finishedStack = stack.finishUsingItem(this.level(), this);
                     if (!finishedStack.isEmpty()) {
                         this.setItemSlot(EquipmentSlot.MAINHAND, finishedStack);
                     }
                     this.ticksSinceEaten = 0;
                 } else if (this.ticksSinceEaten > 560 && this.random.nextFloat() < 0.1f) {
                     this.playSound(this.getEatingSound(stack), 1.0f, 1.0f);
-                    this.level.broadcastEntityEvent(this, (byte)45);
+                    this.level().broadcastEntityEvent(this, (byte)45);
                 }
             }
         }
@@ -201,7 +204,7 @@ public class Vulture extends PathfinderMob implements IAnimatable, FlyingAnimal 
             if (!itemStack.isEmpty()) {
                 for (int i = 0; i < 8; ++i) {
                     Vec3 vec3 = new Vec3(((double)this.random.nextFloat() - 0.5) * 0.1, Math.random() * 0.1 + 0.1, 0.0).xRot(-this.getXRot() * ((float)Math.PI / 180)).yRot(-this.getYRot() * ((float)Math.PI / 180));
-                    this.level.addParticle(new ItemParticleOption(ParticleTypes.ITEM, itemStack), this.getX() + this.getLookAngle().x / 2.0, this.getY(), this.getZ() + this.getLookAngle().z / 2.0, vec3.x, vec3.y + 0.05, vec3.z);
+                    this.level().addParticle(new ItemParticleOption(ParticleTypes.ITEM, itemStack), this.getX() + this.getLookAngle().x / 2.0, this.getY(), this.getZ() + this.getLookAngle().z / 2.0, vec3.x, vec3.y + 0.05, vec3.z);
                 }
             }
         } else {
@@ -235,8 +238,8 @@ public class Vulture extends PathfinderMob implements IAnimatable, FlyingAnimal 
     }
 
     private void dropItemStack(ItemStack pStack) {
-        ItemEntity itementity = new ItemEntity(this.level, this.getX(), this.getY(), this.getZ(), pStack);
-        this.level.addFreshEntity(itementity);
+        ItemEntity itementity = new ItemEntity(this.level(), this.getX(), this.getY(), this.getZ(), pStack);
+        this.level().addFreshEntity(itementity);
     }
 
     @Override
@@ -252,25 +255,23 @@ public class Vulture extends PathfinderMob implements IAnimatable, FlyingAnimal 
     public boolean isBaby() {
         return false;
     }
+    public AnimatableInstanceCache getAnimatableInstanceCache() {
+        return this.geoCache;
+    }
 
-    private <E extends IAnimatable> PlayState predicate(AnimationEvent<E> event) {
+    private <E extends Vulture> PlayState predicate(final AnimationState<E> event) {
         if (this.isFlying()) {
-            event.getController().setAnimation(new AnimationBuilder().addAnimation("vulture.fly", true));
+            event.getController().setAnimation(RawAnimation.begin().thenLoop("vulture.fly"));
         } else {
-            event.getController().setAnimation(new AnimationBuilder().addAnimation("vulture.idle", true));
+            event.getController().setAnimation(RawAnimation.begin().thenLoop("vulture.idle"));
         }
         return PlayState.CONTINUE;
     }
 
     @Override
-    public void registerControllers(AnimationData data) {
-        data.setResetSpeedInTicks(10);
-        data.addAnimationController(new AnimationController<>(this, "controller", 10, this::predicate));
-    }
-
-    @Override
-    public AnimationFactory getFactory() {
-        return factory;
+    public void registerControllers(final AnimatableManager.ControllerRegistrar controllers) {
+        // data.setResetSpeedInTicks(10);
+        controllers.add(new AnimationController<>(this, "controller", 10, this::predicate));
     }
 
     static class VulturePathNavigation extends FlyingPathNavigation {
@@ -280,7 +281,7 @@ public class Vulture extends PathfinderMob implements IAnimatable, FlyingAnimal 
 
         @Override
         public boolean isStableDestination(BlockPos pos) {
-            return super.isStableDestination(pos) && this.mob.level.getBlockState(pos).is(NaturalistTags.BlockTags.VULTURE_PERCH_BLOCKS);
+            return super.isStableDestination(pos) && this.mob.level().getBlockState(pos).is(NaturalistTags.BlockTags.VULTURE_PERCH_BLOCKS);
         }
     }
 
@@ -336,7 +337,7 @@ public class Vulture extends PathfinderMob implements IAnimatable, FlyingAnimal 
                 }
                 if (enemy instanceof Player && this.mob.getMainHandItem().isEmpty() && !enemy.getMainHandItem().isEmpty()) {
                     this.mob.setItemSlot(EquipmentSlot.MAINHAND, enemy.getMainHandItem().split(1));
-                    Level level = this.mob.level;
+                    Level level = this.mob.level();
                     level.playSound(null, mob.getX(), mob.getY(), mob.getZ(), SoundEvents.ITEM_PICKUP, SoundSource.NEUTRAL, 0.2F, ((level.random.nextFloat() - level.random.nextFloat()) * 0.7F + 1.0F) * 2.0F);
                     this.mob.setTarget(null);
                     this.mob.setAggressive(false);
@@ -364,7 +365,7 @@ public class Vulture extends PathfinderMob implements IAnimatable, FlyingAnimal 
         @Override
         public boolean canUse() {
             if (!Vulture.FOOD_ITEMS.test(mob.getMainHandItem())) {
-                List<ItemEntity> list = mob.level.getEntitiesOfClass(ItemEntity.class, mob.getBoundingBox().inflate(horizontalSearchRange, verticalSearchRange, horizontalSearchRange), itemEntity -> ingredient.test(itemEntity.getItem()));
+                List<ItemEntity> list = mob.level().getEntitiesOfClass(ItemEntity.class, mob.getBoundingBox().inflate(horizontalSearchRange, verticalSearchRange, horizontalSearchRange), itemEntity -> ingredient.test(itemEntity.getItem()));
                 return !list.isEmpty() && !Vulture.FOOD_ITEMS.test(mob.getMainHandItem());
             }
             return false;
@@ -372,7 +373,7 @@ public class Vulture extends PathfinderMob implements IAnimatable, FlyingAnimal 
 
         @Override
         public void tick() {
-            List<ItemEntity> list = mob.level.getEntitiesOfClass(ItemEntity.class, mob.getBoundingBox().inflate(horizontalSearchRange, verticalSearchRange, horizontalSearchRange), itemEntity -> ingredient.test(itemEntity.getItem()));
+            List<ItemEntity> list = mob.level().getEntitiesOfClass(ItemEntity.class, mob.getBoundingBox().inflate(horizontalSearchRange, verticalSearchRange, horizontalSearchRange), itemEntity -> ingredient.test(itemEntity.getItem()));
             if (!Vulture.FOOD_ITEMS.test(mob.getMainHandItem()) && !list.isEmpty()) {
                 mob.getNavigation().moveTo(list.get(0), speedModifier);
             }
@@ -381,11 +382,10 @@ public class Vulture extends PathfinderMob implements IAnimatable, FlyingAnimal 
 
         @Override
         public void start() {
-            List<ItemEntity> list = mob.level.getEntitiesOfClass(ItemEntity.class, mob.getBoundingBox().inflate(horizontalSearchRange, verticalSearchRange, horizontalSearchRange), itemEntity -> ingredient.test(itemEntity.getItem()));
+            List<ItemEntity> list = mob.level().getEntitiesOfClass(ItemEntity.class, mob.getBoundingBox().inflate(horizontalSearchRange, verticalSearchRange, horizontalSearchRange), itemEntity -> ingredient.test(itemEntity.getItem()));
             if (!list.isEmpty()) {
                 mob.getNavigation().moveTo(list.get(0), speedModifier);
             }
         }
     }
-
 }

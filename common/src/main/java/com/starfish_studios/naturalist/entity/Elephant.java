@@ -38,20 +38,21 @@ import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.phys.Vec3;
-import software.bernie.geckolib3.core.AnimationState;
-import software.bernie.geckolib3.core.IAnimatable;
-import software.bernie.geckolib3.core.PlayState;
-import software.bernie.geckolib3.core.builder.AnimationBuilder;
-import software.bernie.geckolib3.core.controller.AnimationController;
-import software.bernie.geckolib3.core.event.predicate.AnimationEvent;
-import software.bernie.geckolib3.core.manager.AnimationData;
-import software.bernie.geckolib3.core.manager.AnimationFactory;
+import software.bernie.geckolib.animatable.GeoEntity;
+import software.bernie.geckolib.core.animatable.GeoAnimatable;
+import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
+import software.bernie.geckolib.core.animation.AnimatableManager;
+import software.bernie.geckolib.core.animation.AnimationController;
+import software.bernie.geckolib.core.animation.RawAnimation;
+import software.bernie.geckolib.core.animation.AnimationState;
+import software.bernie.geckolib.core.object.PlayState;
+import software.bernie.geckolib.util.GeckoLibUtil;
 
 import javax.annotation.Nullable;
 import java.util.EnumSet;
 
-public class Elephant extends Animal implements IAnimatable {
-    private final AnimationFactory factory = new AnimationFactory(this);
+public class Elephant extends Animal implements GeoEntity {
+    private final AnimatableInstanceCache geoCache = GeckoLibUtil.createInstanceCache(this);
     private static final EntityDataAccessor<Integer> DIRTY_TICKS = SynchedEntityData.defineId(Elephant.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Boolean> DRINKING = SynchedEntityData.defineId(Elephant.class, EntityDataSerializers.BOOLEAN);
     @Nullable
@@ -59,7 +60,7 @@ public class Elephant extends Animal implements IAnimatable {
 
     public Elephant(EntityType<? extends Animal> entityType, Level level) {
         super(entityType, level);
-        this.maxUpStep = 1.0f;
+        this.setMaxUpStep(1.0f);
     }
 
     public static AttributeSupplier.Builder createAttributes() {
@@ -128,10 +129,10 @@ public class Elephant extends Animal implements IAnimatable {
 
     @Override
     public boolean doHurtTarget(Entity target) {
-        boolean shouldHurt = target.hurt(DamageSource.mobAttack(this), (float) this.getAttributeValue(Attributes.ATTACK_DAMAGE));
+        boolean shouldHurt = target.hurt(target.damageSources().mobAttack(this), (float) this.getAttributeValue(Attributes.ATTACK_DAMAGE));
         if (shouldHurt && target instanceof LivingEntity livingEntity) {
             Vec3 knockbackDirection = new Vec3(this.blockPosition().getX() - target.getX(), 0.0, this.blockPosition().getZ() - target.getZ()).normalize();
-            float shieldBlockModifier = livingEntity.isDamageSourceBlocked(DamageSource.mobAttack(this)) ? 0.5f : 1.0f;
+            float shieldBlockModifier = livingEntity.isDamageSourceBlocked(target.damageSources().mobAttack(this)) ? 0.5f : 1.0f;
             livingEntity.knockback(shieldBlockModifier * 3.0D, knockbackDirection.x(), knockbackDirection.z());
             double knockbackResistance = Math.max(0.0, 1.0 - livingEntity.getAttributeValue(Attributes.KNOCKBACK_RESISTANCE));
             livingEntity.setDeltaMovement(livingEntity.getDeltaMovement().add(0.0, 0.5f * knockbackResistance, 0.0));
@@ -182,12 +183,12 @@ public class Elephant extends Animal implements IAnimatable {
     @Override
     public void aiStep() {
         super.aiStep();
-        if (this.level instanceof ServerLevel serverLevel) {
+        if (this.level() instanceof ServerLevel serverLevel) {
             if (this.isDirty()) {
                 this.setDirtyTicks(this.isInWater() ? 0 : Math.max(0, this.getDirtyTicks() - 1));
             } else {
                 long dayTime = serverLevel.getDayTime();
-                if (dayTime > 4300 && dayTime < 11000 && this.isOnGround() && this.getRandom().nextFloat() < 0.001f && !this.isDrinking()) {
+                if (dayTime > 4300 && dayTime < 11000 && this.onGround() && this.getRandom().nextFloat() < 0.001f && !this.isDrinking()) {
                     this.swing(InteractionHand.MAIN_HAND);
                     this.setDirtyTicks(1000);
                     serverLevel.sendParticles(new BlockParticleOption(ParticleTypes.BLOCK, Blocks.DIRT.defaultBlockState()), this.getX(), this.getY(), this.getZ(),
@@ -196,37 +197,36 @@ public class Elephant extends Animal implements IAnimatable {
             }
         }
     }
+    @Override
+    public AnimatableInstanceCache getAnimatableInstanceCache() {
+        return this.geoCache;
+    }
 
-    private <E extends IAnimatable> PlayState predicate(AnimationEvent<E> event) {
+    private <E extends Elephant> PlayState predicate(final AnimationState<E> event) {
         if (this.getDeltaMovement().horizontalDistanceSqr() > 1.0E-6) {
-            event.getController().setAnimation(new AnimationBuilder().addAnimation("elephant.walk", true));
+            event.getController().setAnimation(RawAnimation.begin().thenLoop("elephant.walk"));
         } else if (this.isDrinking()) {
-            event.getController().setAnimation(new AnimationBuilder().addAnimation("elephant.water", true));
+            event.getController().setAnimation(RawAnimation.begin().thenLoop("elephant.water"));
         } else {
-            event.getController().setAnimation(new AnimationBuilder().addAnimation("elephant.idle", true));
+            event.getController().setAnimation(RawAnimation.begin().thenLoop("elephant.idle"));
         }
         return PlayState.CONTINUE;
     }
 
-    private <E extends IAnimatable> PlayState swingPredicate(AnimationEvent<E> event) {
-        if (this.swinging && event.getController().getAnimationState().equals(AnimationState.Stopped)) {
-            event.getController().markNeedsReload();
-            event.getController().setAnimation(new AnimationBuilder().addAnimation("elephant.swing", false));
+    private <E extends Elephant> PlayState swingPredicate(final AnimationState<E> event) {
+        if (this.swinging && event.getController().getAnimationState().equals(AnimationController.State.STOPPED)) {
+            // event.getController().markNeedsReload();
+            event.getController().setAnimation(RawAnimation.begin().thenPlay("elephant.swing"));
             this.swinging = false;
         }
         return PlayState.CONTINUE;
     }
 
     @Override
-    public void registerControllers(AnimationData data) {
-        data.setResetSpeedInTicks(10);
-        data.addAnimationController(new AnimationController<>(this, "controller", 10, this::predicate));
-        data.addAnimationController(new AnimationController<>(this, "swingController", 0, this::swingPredicate));
-    }
-
-    @Override
-    public AnimationFactory getFactory() {
-        return factory;
+    public void registerControllers(final AnimatableManager.ControllerRegistrar controllers) {
+        // data.setResetSpeedInTicks(10);
+        controllers.add(new AnimationController<>(this, "controller", 10, this::predicate));
+        controllers.add(new AnimationController<>(this, "swingController", 0, this::swingPredicate));
     }
 
     static class ElephantMeleeAttackGoal extends MeleeAttackGoal {

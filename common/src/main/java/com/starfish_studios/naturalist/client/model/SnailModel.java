@@ -5,10 +5,10 @@ import com.starfish_studios.naturalist.entity.Snail;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.resources.ResourceLocation;
-import software.bernie.geckolib3.model.AnimatedGeoModel;
+import software.bernie.geckolib.model.GeoModel;
 
 @Environment(EnvType.CLIENT)
-public class SnailModel extends AnimatedGeoModel<Snail> {
+public class SnailModel extends GeoModel<Snail> {
     @Override
     public ResourceLocation getModelResource(Snail snail) {
         return new ResourceLocation(Naturalist.MOD_ID, "geo/snail.geo.json");

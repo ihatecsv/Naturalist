@@ -67,6 +67,7 @@ import net.minecraft.world.level.block.entity.CampfireBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.phys.Vec3;
+import org.jetbrains.annotations.NotNull;
 import software.bernie.geckolib.animatable.GeoEntity;
 import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
 import software.bernie.geckolib.core.animation.AnimatableManager;
@@ -412,7 +413,7 @@ public class Bear extends Animal implements NeutralMob, GeoEntity, SleepingAnima
     // SHEARING
 
     @Override
-    public InteractionResult mobInteract(Player player, InteractionHand hand) {
+    public @NotNull InteractionResult mobInteract(Player player, @NotNull InteractionHand hand) {
         ItemStack itemStack = player.getItemInHand(hand);
         if (itemStack.is(Items.SHEARS) && this.readyForShearing()) {
             if (!this.isSleeping()) {
@@ -561,14 +562,6 @@ public class Bear extends Animal implements NeutralMob, GeoEntity, SleepingAnima
         controllers.add(new AnimationController<>(this, "swingController", 0, this::swingPredicate));
         controllers.add(new AnimationController<>(this, "eatController", 5, this::eatPredicate));
     }
-
-
-    /*
-    @Override
-    public AnimationFactory getFactory() {
-        return factory;
-    }
-    */
 
     // GOALS
 

@@ -30,20 +30,20 @@ public class BearRenderer extends GeoEntityRenderer<Bear> {
     }
 
     @Override
-    public ResourceLocation getTextureLocation(Bear bear) {
-        return ClientPlatformHelper.arch$getTextureLocation(this.model, bear);
+    public ResourceLocation getTextureLocation(Bear entity) {
+        return ClientPlatformHelper.arch$getTextureLocation(this.model, entity);
     }
 
     @Override
-    public void render(Bear bear, float entityYaw, float partialTick, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight) {
-        super.render(bear, entityYaw, partialTick, poseStack, bufferSource, packedLight);
+    public void render(Bear animatable, float entityYaw, float partialTick, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight) {
+        super.render(animatable, entityYaw, partialTick, poseStack, bufferSource, packedLight);
         if (animatable.isBaby()) {
             poseStack.scale(0.5F, 0.5F, 0.5F);
         }
     }
 
     @Override
-    public void renderRecursively(PoseStack stack, Bear bear, GeoBone bone, RenderType renderType, MultiBufferSource bufferSource, VertexConsumer buffer, boolean isReRender, float partialTick, int packedLight,
+    public void renderRecursively(PoseStack stack, Bear animatable, GeoBone bone, RenderType renderType, MultiBufferSource bufferSource, VertexConsumer buffer, boolean isReRender, float partialTick, int packedLight,
         int packedOverlay, float red, float green, float blue, float alpha) {
         if (bone.getName().equals("snout")) {
             stack.pushPose();
@@ -52,11 +52,11 @@ public class BearRenderer extends GeoEntityRenderer<Bear> {
 
 //            stack.scale(1.0F,1.0F,1.0F);
             
-            Minecraft.getInstance().getItemRenderer().renderStatic(bear.getItemBySlot(EquipmentSlot.MAINHAND), ItemDisplayContext.THIRD_PERSON_RIGHT_HAND, packedLight, packedOverlay, stack, bufferSource, bear.level(), 0);
+            Minecraft.getInstance().getItemRenderer().renderStatic(animatable.getItemBySlot(EquipmentSlot.MAINHAND), ItemDisplayContext.THIRD_PERSON_RIGHT_HAND, packedLight, packedOverlay, stack, bufferSource, animatable.level(), 0);
             
             stack.popPose();
-            buffer = bufferSource.getBuffer(RenderType.entityTranslucent(getTextureLocation(bear)));
+            buffer = bufferSource.getBuffer(RenderType.entityTranslucent(getTextureLocation(animatable)));
         }
-        super.renderRecursively(stack, bear, bone, renderType, bufferSource, buffer, isReRender, partialTick, packedLight, packedOverlay, red, green, blue, alpha);
+        super.renderRecursively(stack, animatable, bone, renderType, bufferSource, buffer, isReRender, partialTick, packedLight, packedOverlay, red, green, blue, alpha);
     }
 }

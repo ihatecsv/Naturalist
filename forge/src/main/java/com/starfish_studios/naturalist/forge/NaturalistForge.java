@@ -41,14 +41,16 @@ public class NaturalistForge {
     }
 
     private void createAttributes(EntityAttributeCreationEvent event) {
-        event.put(NaturalistEntityTypes.SNAIL.get(), Snail.createAttributes().build());
+        //event.put(NaturalistEntityTypes.SNAIL.get(), Snail.createAttributes().build());
         event.put(NaturalistEntityTypes.BEAR.get(), Bear.createAttributes().build());
+        event.put(NaturalistEntityTypes.BOAR.get(), Boar.createAttributes().build());
+        event.put(NaturalistEntityTypes.DEER.get(), Deer.createAttributes().build());
+        /*
         event.put(NaturalistEntityTypes.BUTTERFLY.get(), Butterfly.createAttributes().build());
         event.put(NaturalistEntityTypes.FIREFLY.get(), Firefly.createAttributes().build());
         event.put(NaturalistEntityTypes.SNAKE.get(), Snake.createAttributes().build());
         event.put(NaturalistEntityTypes.CORAL_SNAKE.get(), Snake.createAttributes().build());
         event.put(NaturalistEntityTypes.RATTLESNAKE.get(), Snake.createAttributes().build());
-        event.put(NaturalistEntityTypes.DEER.get(), Deer.createAttributes().build());
         event.put(NaturalistEntityTypes.BLUEJAY.get(), Bird.createAttributes().build());
         event.put(NaturalistEntityTypes.CANARY.get(), Bird.createAttributes().build());
         event.put(NaturalistEntityTypes.CARDINAL.get(), Bird.createAttributes().build());
@@ -61,6 +63,6 @@ public class NaturalistForge {
         event.put(NaturalistEntityTypes.GIRAFFE.get(), Giraffe.createAttributes().build());
         event.put(NaturalistEntityTypes.HIPPO.get(), Hippo.createAttributes().build());
         event.put(NaturalistEntityTypes.VULTURE.get(), Vulture.createAttributes().build());
-        event.put(NaturalistEntityTypes.BOAR.get(), Boar.createAttributes().build());
+         */
     }
 }

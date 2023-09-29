@@ -40,22 +40,22 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.gameevent.GameEvent;
-import software.bernie.geckolib3.core.AnimationState;
-import software.bernie.geckolib3.core.IAnimatable;
-import software.bernie.geckolib3.core.PlayState;
-import software.bernie.geckolib3.core.builder.AnimationBuilder;
-import software.bernie.geckolib3.core.controller.AnimationController;
-import software.bernie.geckolib3.core.event.SoundKeyframeEvent;
-import software.bernie.geckolib3.core.event.predicate.AnimationEvent;
-import software.bernie.geckolib3.core.manager.AnimationData;
-import software.bernie.geckolib3.core.manager.AnimationFactory;
+import software.bernie.geckolib.animatable.GeoEntity;
+import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
+import software.bernie.geckolib.core.animation.AnimatableManager;
+import software.bernie.geckolib.core.animation.AnimationController;
+import software.bernie.geckolib.core.animation.AnimationState;
+import software.bernie.geckolib.core.animation.RawAnimation;
+import software.bernie.geckolib.core.keyframe.event.SoundKeyframeEvent;
+import software.bernie.geckolib.core.object.PlayState;
+import software.bernie.geckolib.util.GeckoLibUtil;
 
 import javax.annotation.Nullable;
 import java.util.List;
 import java.util.UUID;
 
-public class Snake extends ClimbingAnimal implements SleepingAnimal, NeutralMob, IAnimatable {
-    private final AnimationFactory factory = new AnimationFactory(this);
+public class Snake extends ClimbingAnimal implements SleepingAnimal, NeutralMob, GeoEntity {
+    private final AnimatableInstanceCache geoCache = GeckoLibUtil.createInstanceCache(this);
     private static final Ingredient FOOD_ITEMS = Ingredient.of(NaturalistTags.ItemTags.SNAKE_TEMPT_ITEMS);
     private static final UniformInt PERSISTENT_ANGER_TIME = TimeUtil.rangeOfSeconds(20, 39);
     private static final EntityDataAccessor<Integer> REMAINING_ANGER_TIME = SynchedEntityData.defineId(Snake.class, EntityDataSerializers.INT);
@@ -144,7 +144,7 @@ public class Snake extends ClimbingAnimal implements SleepingAnimal, NeutralMob,
     @Override
     public void readAdditionalSaveData(CompoundTag pCompound) {
         super.readAdditionalSaveData(pCompound);
-        this.readPersistentAngerSaveData(this.level, pCompound);
+        this.readPersistentAngerSaveData(this.level(), pCompound);
     }
 
     @Override
@@ -172,8 +172,8 @@ public class Snake extends ClimbingAnimal implements SleepingAnimal, NeutralMob,
     @Override
     public void aiStep() {
         super.aiStep();
-        if (!this.level.isClientSide) {
-            this.updatePersistentAnger((ServerLevel)this.level, true);
+        if (!this.level().isClientSide) {
+            this.updatePersistentAnger((ServerLevel)this.level(), true);
         }
         if (this.isSleeping() || this.isImmobile()) {
             this.jumping = false;
@@ -198,9 +198,9 @@ public class Snake extends ClimbingAnimal implements SleepingAnimal, NeutralMob,
             this.eat(false);
         }
         if (this.isEating()) {
-            if (!this.level.isClientSide && this.getEatCounter() > 6000) {
+            if (!this.level().isClientSide && this.getEatCounter() > 6000) {
                 if (!this.getMainHandItem().isEmpty()) {
-                    if (!this.level.isClientSide) {
+                    if (!this.level().isClientSide) {
                         this.setItemSlot(EquipmentSlot.MAINHAND, ItemStack.EMPTY);
                         this.gameEvent(GameEvent.EAT);
                     }
@@ -238,12 +238,12 @@ public class Snake extends ClimbingAnimal implements SleepingAnimal, NeutralMob,
 
     @Override
     public boolean hurt(DamageSource pSource, float pAmount) {
-        if (!this.getMainHandItem().isEmpty() && !this.level.isClientSide) {
-            ItemEntity itemEntity = new ItemEntity(this.level, this.getX() + this.getLookAngle().x, this.getY() + 1.0D, this.getZ() + this.getLookAngle().z, this.getMainHandItem());
+        if (!this.getMainHandItem().isEmpty() && !this.level().isClientSide) {
+            ItemEntity itemEntity = new ItemEntity(this.level(), this.getX() + this.getLookAngle().x, this.getY() + 1.0D, this.getZ() + this.getLookAngle().z, this.getMainHandItem());
             itemEntity.setPickUpDelay(80);
             itemEntity.setThrower(this.getUUID());
             this.playSound(SoundEvents.FOX_SPIT, 1.0F, 1.0F);
-            this.level.addFreshEntity(itemEntity);
+            this.level().addFreshEntity(itemEntity);
             this.setItemSlot(EquipmentSlot.MAINHAND, ItemStack.EMPTY);
         }
         return super.hurt(pSource, pAmount);
@@ -265,8 +265,8 @@ public class Snake extends ClimbingAnimal implements SleepingAnimal, NeutralMob,
 
     @Override
     public boolean canSleep() {
-        long dayTime = this.level.getDayTime();
-        if (this.isAngry() || this.level.isWaterAt(this.blockPosition())) {
+        long dayTime = this.level().getDayTime();
+        if (this.isAngry() || this.level().isWaterAt(this.blockPosition())) {
             return false;
         } else if (dayTime > 18000 && dayTime < 23000) {
             return false;
@@ -322,7 +322,7 @@ public class Snake extends ClimbingAnimal implements SleepingAnimal, NeutralMob,
     }
 
     private boolean canRattle() {
-        List<Player> players = this.getLevel().getNearbyPlayers(TargetingConditions.forNonCombat().range(4.0D), this, this.getBoundingBox().inflate(4.0D, 2.0D, 4.0D));
+        List<Player> players = this.level().getNearbyPlayers(TargetingConditions.forNonCombat().range(4.0D), this, this.getBoundingBox().inflate(4.0D, 2.0D, 4.0D));
         return !players.isEmpty() && this.getType().equals(NaturalistEntityTypes.RATTLESNAKE.get());
     }
 
@@ -340,71 +340,68 @@ public class Snake extends ClimbingAnimal implements SleepingAnimal, NeutralMob,
     }
 
     // ANIMATION
-
-    private <E extends IAnimatable> PlayState predicate(AnimationEvent<E> event) {
+    public AnimatableInstanceCache getAnimatableInstanceCache() {
+        return this.geoCache;
+    }
+    private <E extends Snake> PlayState predicate(final AnimationState<E> event) {
         if (this.isSleeping()) {
-            event.getController().setAnimation(new AnimationBuilder().addAnimation("snake.sleep", true));
+            event.getController().setAnimation(RawAnimation.begin().thenLoop("snake.sleep"));
             return PlayState.CONTINUE;
         } else if (this.isClimbing()) {
-            event.getController().setAnimation(new AnimationBuilder().addAnimation("snake.climb", true));
+            event.getController().setAnimation(RawAnimation.begin().thenLoop("snake.climb"));
             return PlayState.CONTINUE;
         } else if (!(event.getLimbSwingAmount() > -0.04F && event.getLimbSwingAmount() < 0.04F)) {
-            event.getController().setAnimation(new AnimationBuilder().addAnimation("snake.move", true));
+            event.getController().setAnimation(RawAnimation.begin().thenLoop("snake.move"));
             return PlayState.CONTINUE;
         }
-        event.getController().markNeedsReload();
+        // event.getController().markNeedsReload();
         return PlayState.STOP;
     }
 
-    private <E extends IAnimatable> PlayState attackPredicate(AnimationEvent<E> event) {
-        if (this.swinging && event.getController().getAnimationState().equals(AnimationState.Stopped)) {
-            event.getController().markNeedsReload();
-            event.getController().setAnimation(new AnimationBuilder().addAnimation("snake.attack", false));
+    private <E extends Snake> PlayState attackPredicate(final AnimationState<E> event) {
+        if (this.swinging && event.getController().getAnimationState().equals(AnimationController.State.STOPPED)) {
+            // event.getController().markNeedsReload();
+            event.getController().setAnimation(RawAnimation.begin().thenPlay("snake.attack"));
             this.swinging = false;
         }
         return PlayState.CONTINUE;
     }
 
-    private <E extends IAnimatable> PlayState tonguePredicate(AnimationEvent<E> event) {
-        if (this.random.nextInt(1000) < this.ambientSoundTime && !this.isSleeping() && event.getController().getAnimationState().equals(AnimationState.Stopped)) {
-            event.getController().markNeedsReload();
-            event.getController().setAnimation(new AnimationBuilder().addAnimation("snake.tongue", false));
+    private <E extends Snake> PlayState tonguePredicate(final AnimationState<E> event) {
+        if (this.random.nextInt(1000) < this.ambientSoundTime && !this.isSleeping() && event.getController().getAnimationState().equals(AnimationController.State.STOPPED)) {
+            // event.getController().markNeedsReload();
+            event.getController().setAnimation(RawAnimation.begin().thenPlay("snake.tongue"));
         }
         return PlayState.CONTINUE;
     }
 
-    private <E extends IAnimatable> PlayState rattlePredicate(AnimationEvent<E> event) {
+    private <E extends Snake> PlayState rattlePredicate(final AnimationState<E> event) {
         if (this.canRattle() && !this.isSleeping()) {
-            event.getController().setAnimation(new AnimationBuilder().addAnimation("snake.rattle", true));
+            event.getController().setAnimation(RawAnimation.begin().thenLoop("snake.rattle"));
             return PlayState.CONTINUE;
         }
-        event.getController().markNeedsReload();
+        // event.getController().markNeedsReload();
         return PlayState.STOP;
     }
 
     private void soundListener(SoundKeyframeEvent<Snake> event) {
-        Snake snake = event.getEntity();
-        if (snake.level.isClientSide) {
-            if (event.sound.equals("hiss")) {
-                snake.level.playLocalSound(snake.getX(), snake.getY(), snake.getZ(), NaturalistSoundEvents.SNAKE_HISS.get(), snake.getSoundSource(), snake.getSoundVolume(), snake.getVoicePitch(), false);
+        Snake snake = event.getAnimatable();
+        if (snake.level().isClientSide) {
+            if (event.getKeyframeData().getSound().equals("hiss")) {
+                snake.level().playLocalSound(snake.getX(), snake.getY(), snake.getZ(), NaturalistSoundEvents.SNAKE_HISS.get(), snake.getSoundSource(), snake.getSoundVolume(), snake.getVoicePitch(), false);
             }
         }
     }
 
     @Override
-    public void registerControllers(AnimationData data) {
-        data.setResetSpeedInTicks(10);
-        data.addAnimationController(new AnimationController<>(this, "controller", 10, this::predicate));
-        data.addAnimationController(new AnimationController<>(this, "attackController", 0, this::attackPredicate));
+    public void registerControllers(final AnimatableManager.ControllerRegistrar controllers) {
+        // data.setResetSpeedInTicks(10);
+        controllers.add(new AnimationController<>(this, "controller", 10, this::predicate));
+        controllers.add(new AnimationController<>(this, "attackController", 0, this::attackPredicate));
         AnimationController<Snake> tongueController = new AnimationController<>(this, "tongueController", 0, this::tonguePredicate);
-        tongueController.registerSoundListener(this::soundListener);
-        data.addAnimationController(tongueController);
-        data.addAnimationController(new AnimationController<>(this, "rattleController", 0, this::rattlePredicate));
-    }
-
-    @Override
-    public AnimationFactory getFactory() {
-        return factory;
+        tongueController.setSoundKeyframeHandler(this::soundListener);
+        controllers.add(tongueController);
+        controllers.add(new AnimationController<>(this, "rattleController", 0, this::rattlePredicate));
     }
 
     // GOALS

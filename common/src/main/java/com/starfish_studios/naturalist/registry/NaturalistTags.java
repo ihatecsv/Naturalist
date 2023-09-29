@@ -2,6 +2,8 @@ package com.starfish_studios.naturalist.registry;
 
 import com.starfish_studios.naturalist.Naturalist;
 import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.EntityType;
@@ -17,7 +19,7 @@ public class NaturalistTags {
         public static final TagKey<Block> VULTURES_SPAWNABLE_ON = tag("vultures_spawnable_on");
 
         private static TagKey<Block> tag(String name) {
-            return TagKey.create(Registry.BLOCK_REGISTRY, new ResourceLocation(Naturalist.MOD_ID, name));
+            return TagKey.create(BuiltInRegistries.BLOCK.key(), new ResourceLocation(Naturalist.MOD_ID, name));
         }
     }
 
@@ -29,7 +31,7 @@ public class NaturalistTags {
         public static final TagKey<Item> BOAR_FOOD_ITEMS = tag("boar_food_items");
 
         private static TagKey<Item> tag(String name) {
-            return TagKey.create(Registry.ITEM_REGISTRY, new ResourceLocation(Naturalist.MOD_ID, name));
+            return TagKey.create(BuiltInRegistries.ITEM.key(), new ResourceLocation(Naturalist.MOD_ID, name));
         }
     }
 
@@ -41,7 +43,7 @@ public class NaturalistTags {
         public static final TagKey<EntityType<?>> VULTURE_HOSTILES = tag("vulture_hostiles");
 
         private static TagKey<EntityType<?>> tag(String name) {
-            return TagKey.create(Registry.ENTITY_TYPE_REGISTRY, new ResourceLocation(Naturalist.MOD_ID, name));
+            return TagKey.create(BuiltInRegistries.ENTITY_TYPE.key(), new ResourceLocation(Naturalist.MOD_ID, name));
         }
     }
 
@@ -68,7 +70,7 @@ public class NaturalistTags {
         public static final TagKey<Biome> HAS_BOAR = tag("has_boar");
 
         private static TagKey<Biome> tag(String name) {
-            return TagKey.create(Registry.BIOME_REGISTRY, new ResourceLocation(Naturalist.MOD_ID, name));
+            return TagKey.create(Registries.BIOME, new ResourceLocation(Naturalist.MOD_ID, name));
         }
     }
 }
