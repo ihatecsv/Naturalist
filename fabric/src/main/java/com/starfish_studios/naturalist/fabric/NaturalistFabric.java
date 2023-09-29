@@ -40,8 +40,10 @@ public class NaturalistFabric implements ModInitializer {
     }
 
     void registerEntityAttributes() {
-        FabricDefaultAttributeRegistry.register(NaturalistEntityTypes.SNAIL.get(), Snail.createAttributes());
+        //FabricDefaultAttributeRegistry.register(NaturalistEntityTypes.SNAIL.get(), Snail.createAttributes());
         FabricDefaultAttributeRegistry.register(NaturalistEntityTypes.BEAR.get(), Bear.createAttributes());
+        
+        /*
         FabricDefaultAttributeRegistry.register(NaturalistEntityTypes.BUTTERFLY.get(), Butterfly.createAttributes());
         FabricDefaultAttributeRegistry.register(NaturalistEntityTypes.FIREFLY.get(), Firefly.createAttributes());
         FabricDefaultAttributeRegistry.register(NaturalistEntityTypes.SNAKE.get(), Snake.createAttributes());
@@ -61,11 +63,13 @@ public class NaturalistFabric implements ModInitializer {
         FabricDefaultAttributeRegistry.register(NaturalistEntityTypes.HIPPO.get(), Hippo.createAttributes());
         FabricDefaultAttributeRegistry.register(NaturalistEntityTypes.VULTURE.get(), Vulture.createAttributes());
         FabricDefaultAttributeRegistry.register(NaturalistEntityTypes.BOAR.get(), Boar.createAttributes());
+        */
     }
 
     void addSpawns() {
         NaturalistConfigFabric config = AutoConfig.getConfigHolder(NaturalistConfigFabric.class).getConfig();
         addMobSpawn(NaturalistTags.Biomes.HAS_BEAR, MobCategory.CREATURE, NaturalistEntityTypes.BEAR.get(), config.bearSpawnWeight, 1, 2);
+        /*
         addMobSpawn(NaturalistTags.Biomes.HAS_DEER, MobCategory.CREATURE, NaturalistEntityTypes.DEER.get(), config.deerSpawnWeight, 1, 3);
         addMobSpawn(NaturalistTags.Biomes.HAS_SNAIL, MobCategory.CREATURE, NaturalistEntityTypes.SNAIL.get(), config.snailSpawnWeight, 1, 3);
         addMobSpawn(NaturalistTags.Biomes.HAS_FIREFLY, NaturalistMobCategories.getFireflyCategory(), NaturalistEntityTypes.FIREFLY.get(), config.fireflySpawnWeight, 2, 3);
@@ -90,6 +94,7 @@ public class NaturalistFabric implements ModInitializer {
         if (config.removeSavannaFarmAnimals) {
             removeSpawn(BiomeTags.IS_SAVANNA, List.of(EntityType.SHEEP, EntityType.PIG, EntityType.CHICKEN, EntityType.COW));
         }
+        */
     }
 
     void addMobSpawn(TagKey<Biome> tag, MobCategory mobCategory, EntityType<?> entityType, int weight, int minGroupSize, int maxGroupSize) {

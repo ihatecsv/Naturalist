@@ -7,16 +7,14 @@ import net.fabricmc.api.Environment;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.Items;
-import org.jetbrains.annotations.Nullable;
-import software.bernie.geckolib3.core.event.predicate.AnimationEvent;
-import software.bernie.geckolib3.core.processor.IBone;
-import software.bernie.geckolib3.model.AnimatedGeoModel;
-import software.bernie.geckolib3.model.provider.data.EntityModelData;
-
-import java.util.List;
+import software.bernie.geckolib.constant.DataTickets;
+import software.bernie.geckolib.core.animatable.model.CoreGeoBone;
+import software.bernie.geckolib.core.animation.AnimationState;
+import software.bernie.geckolib.model.GeoModel;
+import software.bernie.geckolib.model.data.EntityModelData;
 
 @Environment(EnvType.CLIENT)
-public class BearModel extends AnimatedGeoModel<Bear> {
+public class BearModel extends GeoModel<Bear> {
     @Override
     public ResourceLocation getModelResource(Bear crocodile) {
         return new ResourceLocation(Naturalist.MOD_ID, "geo/bear.geo.json");
@@ -44,13 +42,13 @@ public class BearModel extends AnimatedGeoModel<Bear> {
     }
 
     @Override
-    public void setLivingAnimations(Bear bear, Integer uniqueID, @Nullable AnimationEvent customPredicate) {
-        super.setLivingAnimations(bear, uniqueID, customPredicate);
+    public void setCustomAnimations(Bear bear, long instanceId, AnimationState<Bear> animationState) {
+        super.setCustomAnimations(bear, instanceId, animationState);
 
-        if (customPredicate == null) return;
+        if (animationState == null) return;
 
-        List<EntityModelData> extraDataOfType = customPredicate.getExtraDataOfType(EntityModelData.class);
-        IBone head = this.getAnimationProcessor().getBone("head");
+        EntityModelData extraDataOfType = animationState.getData(DataTickets.ENTITY_MODEL_DATA);
+        CoreGeoBone head = this.getAnimationProcessor().getBone("head");
 
         if (bear.isBaby()) {
             head.setScaleX(1.8F);
@@ -59,8 +57,8 @@ public class BearModel extends AnimatedGeoModel<Bear> {
         }
 
         if (!bear.isSleeping() && !bear.isEating() && !bear.isSitting()) {
-            head.setRotationX(extraDataOfType.get(0).headPitch * Mth.DEG_TO_RAD);
-            head.setRotationY(extraDataOfType.get(0).netHeadYaw * Mth.DEG_TO_RAD);
+            head.setRotX(extraDataOfType.headPitch() * Mth.DEG_TO_RAD);
+            head.setRotY(extraDataOfType.netHeadYaw() * Mth.DEG_TO_RAD);
         }
     }
 }

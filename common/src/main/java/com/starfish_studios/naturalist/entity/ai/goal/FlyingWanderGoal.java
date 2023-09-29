@@ -1,6 +1,7 @@
 package com.starfish_studios.naturalist.entity.ai.goal;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Vec3i;
 import net.minecraft.world.entity.PathfinderMob;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.ai.util.AirAndWaterRandomPos;
@@ -32,7 +33,7 @@ public class FlyingWanderGoal extends Goal {
     public void start() {
         Vec3 vec3 = this.findPos();
         if (vec3 != null) {
-            mob.getNavigation().moveTo(mob.getNavigation().createPath(new BlockPos(vec3), 1), 1.0D);
+            mob.getNavigation().moveTo(mob.getNavigation().createPath(new BlockPos(new Vec3i((int)vec3.x, (int)vec3.y, (int)vec3.z)), 1), 1.0D);
         }
 
     }

@@ -7,8 +7,8 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.level.block.Block;
-import software.bernie.geckolib3.core.IAnimatable;
-import software.bernie.geckolib3.model.AnimatedGeoModel;
+import software.bernie.geckolib.core.animatable.GeoAnimatable;
+import software.bernie.geckolib.model.GeoModel;
 
 import java.util.function.Supplier;
 
@@ -24,7 +24,7 @@ public class ClientPlatformHelper {
     }
 
     @ExpectPlatform
-    public static <T extends IAnimatable> ResourceLocation arch$getTextureLocation(AnimatedGeoModel<T> model, T entity) {
+    public static <T extends GeoAnimatable> ResourceLocation arch$getTextureLocation(GeoModel<T> model, T entity) {
         throw new AssertionError();
     }
 }

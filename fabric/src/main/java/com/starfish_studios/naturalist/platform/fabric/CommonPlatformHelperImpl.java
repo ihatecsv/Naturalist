@@ -4,10 +4,12 @@ import com.starfish_studios.naturalist.Naturalist;
 import com.starfish_studios.naturalist.item.fabric.NoFluidMobBucketItem;
 import com.starfish_studios.naturalist.mixin.fabric.PotionBrewingInvoker;
 import com.starfish_studios.naturalist.mixin.fabric.SpawnPlacementsInvoker;
-import net.fabricmc.fabric.api.client.itemgroup.FabricItemGroupBuilder;
+
+import net.fabricmc.fabric.api.block.v1.FabricBlock;
 import net.fabricmc.fabric.api.object.builder.v1.entity.FabricEntityTypeBuilder;
 import net.fabricmc.fabric.api.registry.CompostingChanceRegistry;
 import net.minecraft.core.Registry;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.entity.*;
@@ -25,12 +27,12 @@ import java.util.function.Supplier;
 
 public class CommonPlatformHelperImpl {
     public static <T extends Block> Supplier<T> registerBlock(String name, Supplier<T> block) {
-        T registry = Registry.register(Registry.BLOCK, new ResourceLocation(Naturalist.MOD_ID, name), block.get());
+        T registry = Registry.register(Registries.BLOCK, new ResourceLocation(Naturalist.MOD_ID, name), block.get());
         return () -> registry;
     }
 
     public static <T extends Item> Supplier<T> registerItem(String name, Supplier<T> item) {
-        T registry = Registry.register(Registry.ITEM, new ResourceLocation(Naturalist.MOD_ID, name), item.get());
+        T registry = Registry.register(Registries.ITEM, new ResourceLocation(Naturalist.MOD_ID, name), item.get());
         return () -> registry;
     }
 
@@ -43,12 +45,12 @@ public class CommonPlatformHelperImpl {
     }
 
     public static <T extends SoundEvent> Supplier<T> registerSoundEvent(String name, Supplier<T> soundEvent) {
-        T registry = Registry.register(Registry.SOUND_EVENT, new ResourceLocation(Naturalist.MOD_ID, name), soundEvent.get());
+        T registry = Registry.register(Registries.SOUND_EVENT, new ResourceLocation(Naturalist.MOD_ID, name), soundEvent.get());
         return () -> registry;
     }
 
     public static <T extends Entity> Supplier<EntityType<T>> registerEntityType(String name, EntityType.EntityFactory<T> factory, MobCategory category, float width, float height, int clientTrackingRange) {
-        EntityType<T> registry = Registry.register(Registry.ENTITY_TYPE, new ResourceLocation(Naturalist.MOD_ID, name), FabricEntityTypeBuilder.create(category, factory).dimensions(EntityDimensions.scalable(width, height)).trackRangeChunks(clientTrackingRange).build());
+        EntityType<T> registry = Registry.register(Registries.ENTITY_TYPE, new ResourceLocation(Naturalist.MOD_ID, name), FabricEntityTypeBuilder.create(category, factory).dimensions(EntityDimensions.scalable(width, height)).trackRangeChunks(clientTrackingRange).build());
         return () -> registry;
     }
 
@@ -57,7 +59,7 @@ public class CommonPlatformHelperImpl {
     }
 
     public static <T extends Potion> Supplier<T> registerPotion(String name, Supplier<T> potion) {
-        T registry = Registry.register(Registry.POTION, new ResourceLocation(Naturalist.MOD_ID, name), potion.get());
+        T registry = Registry.register(Registries.POTION, new ResourceLocation(Naturalist.MOD_ID, name), potion.get());
         return () -> registry;
     }
 

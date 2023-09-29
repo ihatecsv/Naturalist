@@ -1,6 +1,7 @@
 package com.starfish_studios.naturalist.entity.ai.navigation;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Vec3i;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.navigation.GroundPathNavigation;
@@ -50,8 +51,8 @@ public class BetterWallClimberNavigation extends GroundPathNavigation {
                 if (!this.pathToPosition.closerToCenterThan(this.mob.position(),
                         Math.max(this.mob.getBbWidth(), 1.0D))
                         && (!(this.mob.getY() > (double) this.pathToPosition.getY())
-                        || !(new BlockPos(this.pathToPosition.getX(), this.mob.getY(),
-                        this.pathToPosition.getZ())).closerToCenterThan(this.mob.position(),
+                        || !(new BlockPos(new Vec3i(this.pathToPosition.getX(), (int)this.mob.getY(),
+                        this.pathToPosition.getZ()))).closerToCenterThan(this.mob.position(),
                         Math.max(this.mob.getBbWidth(), 1.0D)))) {
                     this.mob.getMoveControl().setWantedPosition(this.pathToPosition.getX(), this.pathToPosition.getY(),
                             this.pathToPosition.getZ(), this.speedModifier);

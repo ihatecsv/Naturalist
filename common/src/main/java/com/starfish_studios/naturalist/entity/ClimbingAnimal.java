@@ -31,7 +31,8 @@ public abstract class ClimbingAnimal extends Animal {
     @Override
     public void tick() {
         super.tick();
-        if (!this.level.isClientSide) {
+        Level level = this.level();
+        if (!level.isClientSide) {
             this.setClimbing(this.horizontalCollision);
         }
         if (this.horizontalCollision && this.onClimbable()) {
