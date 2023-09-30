@@ -13,9 +13,10 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.alchemy.Potions;
 import net.minecraft.world.level.levelgen.Heightmap;
+import software.bernie.geckolib.GeckoLib;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import software.bernie.geckolib3.GeckoLib;
 
 public class Naturalist {
     public static final String MOD_ID = "naturalist";
