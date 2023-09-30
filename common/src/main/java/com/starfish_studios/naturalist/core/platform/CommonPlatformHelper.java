@@ -35,7 +35,7 @@ public class CommonPlatformHelper {
     }
 
     @ExpectPlatform
-    public static <T extends Item> Supplier<T> registerItem(String name, Supplier<T> item) {
+    public static <T extends Item> Supplier<T> registerItem(String name, Supplier<T> item, boolean shouldPutInCreativeTab) {
         throw new AssertionError();
     }
 

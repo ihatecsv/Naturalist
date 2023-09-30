@@ -9,12 +9,12 @@ import com.starfish_studios.naturalist.core.registry.fabric.NaturalistConfigFabr
 import me.shedaniel.autoconfig.AutoConfig;
 import me.shedaniel.autoconfig.serializer.GsonConfigSerializer;
 import net.fabricmc.api.ModInitializer;
-import net.fabricmc.fabric.api.biome.v1.BiomeModificationContext;
 import net.fabricmc.fabric.api.biome.v1.BiomeModifications;
 import net.fabricmc.fabric.api.biome.v1.ModificationPhase;
 import net.fabricmc.fabric.api.object.builder.v1.entity.FabricDefaultAttributeRegistry;
 import net.fabricmc.fabric.api.tag.convention.v1.ConventionalBiomeTags;
-import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.BiomeTags;
@@ -69,7 +69,7 @@ public class NaturalistFabric implements ModInitializer {
 
 
     private ResourceKey<PlacedFeature> getPlacedFeatureKey(String key) {
-        return ResourceKey.create(Registry.PLACED_FEATURE_REGISTRY, new ResourceLocation(Naturalist.MOD_ID, key));
+        return ResourceKey.create(Registries.PLACED_FEATURE, new ResourceLocation(Naturalist.MOD_ID, key));
     }
 
 
@@ -158,8 +158,8 @@ public class NaturalistFabric implements ModInitializer {
 
     void removeSpawn(TagKey<Biome> tag, List<EntityType<?>> entityTypes) {
         entityTypes.forEach(entityType -> {
-            ResourceLocation id = Registry.ENTITY_TYPE.getKey(entityType);
-            Preconditions.checkState(Registry.ENTITY_TYPE.containsKey(id), "Unregistered entity type: %s", entityType);
+            ResourceLocation id = BuiltInRegistries.ENTITY_TYPE.getKey(entityType);
+            Preconditions.checkState(BuiltInRegistries.ENTITY_TYPE.containsKey(id), "Unregistered entity type: %s", entityType);
             BiomeModifications.create(id).add(ModificationPhase.REMOVALS, biomeSelector -> biomeSelector.hasTag(tag), context -> context.getSpawnSettings().removeSpawnsOfEntityType(entityType));
         });
         

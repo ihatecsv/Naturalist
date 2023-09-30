@@ -4,6 +4,8 @@ import com.starfish_studios.naturalist.Naturalist;
 import com.starfish_studios.naturalist.item.forge.*;
 import com.starfish_studios.naturalist.core.registry.NaturalistMenus;
 import com.starfish_studios.naturalist.util.forge.NaturalistBrewingRecipe;
+import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
@@ -46,27 +48,28 @@ public class CommonPlatformHelperImpl {
     }
 
     public static <T extends Item> Supplier<T> registerItem(String name, Supplier<T> item) {
-        return ITEMS.register(name, item);
+        T registry = Registry.register(BuiltInRegistries.ITEM, new ResourceLocation(Naturalist.MOD_ID, name), item.get());
+        return () -> registry;
     }
 
     public static <T extends Mob> Supplier<SpawnEggItem> registerSpawnEggItem(String name, Supplier<EntityType<T>> entityType, int backgroundColor, int highlightColor) {
-        return ITEMS.register(name, () -> new ForgeSpawnEggItem(entityType, backgroundColor, highlightColor, new Item.Properties().tab(Naturalist.TAB)));
+        return ITEMS.register(name, () -> new ForgeSpawnEggItem(entityType, backgroundColor, highlightColor, new Item.Properties()));
     }
 
     public static Supplier<Item> registerNoFluidMobBucketItem(String name, Supplier<? extends EntityType<?>> entitySupplier, Supplier<? extends Fluid> fluidSupplier, Supplier<? extends SoundEvent> soundSupplier) {
-        return ITEMS.register(name, () -> new NoFluidMobBucketItem(entitySupplier, fluidSupplier, soundSupplier, new Item.Properties().tab(Naturalist.TAB).stacksTo(1)));
+        return ITEMS.register(name, () -> new NoFluidMobBucketItem(entitySupplier, fluidSupplier, soundSupplier, new Item.Properties().stacksTo(1)));
     }
 
     public static Supplier<Item> registerMobBucketItem(String name, Supplier<? extends EntityType<?>> entitySupplier, Supplier<? extends Fluid> fluidSupplier, Supplier<? extends SoundEvent> soundSupplier) {
-        return ITEMS.register(name, () -> new MobBucketItem(entitySupplier, fluidSupplier, soundSupplier, new Item.Properties().tab(Naturalist.TAB).stacksTo(1)));
+        return ITEMS.register(name, () -> new MobBucketItem(entitySupplier, fluidSupplier, soundSupplier, new Item.Properties().stacksTo(1)));
     }
 
     public static Supplier<Item> registerCaughtMobItem(String name, Supplier<? extends EntityType<?>> entitySupplier, Supplier<? extends Fluid> fluidSupplier, Supplier<? extends SoundEvent> soundSupplier) {
-        return ITEMS.register(name, () -> new CaughtMobItem(entitySupplier, fluidSupplier, soundSupplier, new Item.Properties().tab(Naturalist.TAB).stacksTo(1)));
+        return ITEMS.register(name, () -> new CaughtMobItem(entitySupplier, fluidSupplier, soundSupplier, new Item.Properties().stacksTo(1)));
     }
 
     public static Supplier<Item> registerCaughtMobItem(String name, Supplier<? extends EntityType<?>> entitySupplier, Supplier<? extends Fluid> fluidSupplier, Supplier<? extends SoundEvent> soundSupplier, int variantAmount) {
-        return ITEMS.register(name, () -> new CaughtMobWithVariantsItem(entitySupplier, fluidSupplier, soundSupplier, variantAmount, new Item.Properties().tab(Naturalist.TAB).stacksTo(1)));
+        return ITEMS.register(name, () -> new CaughtMobWithVariantsItem(entitySupplier, fluidSupplier, soundSupplier, variantAmount, new Item.Properties().stacksTo(1)));
     }
 
     public static <T extends SoundEvent> Supplier<T> registerSoundEvent(String name, Supplier<T> soundEvent) {
@@ -90,12 +93,7 @@ public class CommonPlatformHelperImpl {
     }
 
     public static CreativeModeTab registerCreativeModeTab(ResourceLocation name, Supplier<ItemStack> icon) {
-        return new CreativeModeTab(name.toLanguageKey()) {
-            @Override
-            public ItemStack makeIcon() {
-                return icon.get();
-            }
-        };
+        return null;
     }
 
     public static <T extends Potion> Supplier<T> registerPotion(String name, Supplier<T> potion) {

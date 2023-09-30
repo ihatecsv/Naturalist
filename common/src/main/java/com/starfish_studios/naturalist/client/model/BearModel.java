@@ -13,10 +13,6 @@ import software.bernie.geckolib.core.animation.AnimationState;
 import software.bernie.geckolib.model.GeoModel;
 import software.bernie.geckolib.model.data.EntityModelData;
 
-import org.jetbrains.annotations.Nullable;
-
-import java.util.List;
-
 @Environment(EnvType.CLIENT)
 public class BearModel extends GeoModel<Bear> {
     @Override
