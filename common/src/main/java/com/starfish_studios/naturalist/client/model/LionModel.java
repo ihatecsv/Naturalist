@@ -45,16 +45,16 @@ public class LionModel extends GeoModel<Lion> {
         CoreGeoBone mane = this.getAnimationProcessor().getBone("mane");
 
         if (animatable.isBaby()) {
-            head.setRotX(1.4F);
-            head.setRotY(1.4F);
-            head.setRotZ(1.4F);
-            mane.setRotX(1.75F);
-            mane.setRotY(1.75F);
-            mane.setRotZ(1.75F);
+            head.setScaleX(1.4F);
+            head.setScaleY(1.4F);
+            head.setScaleZ(1.4F);
+            head.setScaleX(1.75F);
+            head.setScaleY(1.75F);
+            head.setScaleZ(1.75F);
         } else {
-            head.setRotX(1.0F);
-            head.setRotY(1.0F);
-            head.setRotZ(1.0F);
+            head.setScaleX(1.0F);
+            head.setScaleY(1.0F);
+            head.setScaleZ(1.0F);
         }
 
         mane.setHidden(!animatable.hasMane() || animatable.isBaby());

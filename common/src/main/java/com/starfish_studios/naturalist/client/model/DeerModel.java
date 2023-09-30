@@ -44,18 +44,16 @@ public class DeerModel extends GeoModel<Deer> {
         CoreGeoBone antlers = this.getAnimationProcessor().getBone("antlers");
 
         if (animatable.isBaby()) {
-            head.setRotX(1.4F);
-            head.setRotY(1.4F);
-            head.setRotZ(1.4F);
-
-            // TODO: this was changed to antlers from head
-            antlers.setRotX(1.6F);
-            antlers.setRotY(1.6F);
-            antlers.setRotZ(1.6F);
+            head.setScaleX(1.4F);
+            head.setScaleY(1.4F);
+            head.setScaleZ(1.4F);
+            head.setScaleX(1.6F);
+            head.setScaleY(1.6F);
+            head.setScaleZ(1.6F);
         } else {
-            head.setRotX(1.0F);
-            head.setRotY(1.0F);
-            head.setRotZ(1.0F);
+            head.setScaleX(1.0F);
+            head.setScaleY(1.0F);
+            head.setScaleZ(1.0F);
         }
 
         antlers.setHidden(animatable.isBaby());
