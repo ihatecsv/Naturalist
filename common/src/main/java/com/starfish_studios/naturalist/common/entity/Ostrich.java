@@ -101,7 +101,8 @@ public class Ostrich extends Animal implements GeoEntity, ItemSteerable, Saddlea
         this.goalSelector.addGoal(3, new EggLayingBreedGoal<>(this, 1.0));
         this.goalSelector.addGoal(3, new LaySingleEggGoal<>(this, 1.0));
         this.goalSelector.addGoal(4, new OstrichAttackGoal(this, 1.4D, true));
-        this.goalSelector.addGoal(5, new TemptGoal(this, 1.3D, Ingredient.of(NaturalistItems.GRUB_ON_A_STICK.get()), false));
+        // TODO: Forge is bullshit
+        // this.goalSelector.addGoal(5, new TemptGoal(this, 1.3D, Ingredient.of(NaturalistItems.GRUB_ON_A_STICK.get()), false));
         this.goalSelector.addGoal(5, new TemptGoal(this, 1.3D, Ingredient.of(Items.BEETROOT), false));
         this.goalSelector.addGoal(6, new FollowParentGoal(this, 1.3D));
         this.goalSelector.addGoal(7, new WaterAvoidingRandomStrollGoal(this, 1.0D));
@@ -303,11 +304,15 @@ public class Ostrich extends Animal implements GeoEntity, ItemSteerable, Saddlea
     }
 
     private boolean canBeControlledBy(Entity entity) {
+        // TODO: forge bullshit
+        return false;
+        /*
         if (this.isSaddled() && entity instanceof Player player) {
             return player.getMainHandItem().is(NaturalistItems.GRUB_ON_A_STICK.get()) || player.getOffhandItem().is(NaturalistItems.GRUB_ON_A_STICK.get());
         } else {
             return false;
         }
+        */
     }
 
     public InteractionResult mobInteract(Player player, InteractionHand hand) {

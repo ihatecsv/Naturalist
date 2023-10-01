@@ -1,11 +1,8 @@
 package com.starfish_studios.naturalist.core.platform.forge;
 
-import com.starfish_studios.naturalist.Naturalist;
 import com.starfish_studios.naturalist.item.forge.*;
 import com.starfish_studios.naturalist.core.registry.NaturalistMenus;
 import com.starfish_studios.naturalist.util.forge.NaturalistBrewingRecipe;
-import net.minecraft.core.Registry;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
@@ -33,7 +30,6 @@ import net.minecraftforge.network.NetworkHooks;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.RegistryObject;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -137,16 +133,14 @@ public class CommonPlatformHelperImpl {
         itemStacks.add(itemStack);
     }
 
-    /*
     @SubscribeEvent
-    public void buildContents(BuildCreativeModeTabContentsEvent event) {
+    public static void buildContents(BuildCreativeModeTabContentsEvent event) {
         // Add to ingredients tab
         if (event.getTabKey() == tabResourceKey) {
             for (ItemStack itemStack : itemStacks) {
                 event.accept(itemStack);
             }
-            itemStacks.clear();
+            // itemStacks.clear();
         }
     }
-     */
 }

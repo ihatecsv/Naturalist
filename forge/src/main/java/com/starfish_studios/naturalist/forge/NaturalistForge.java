@@ -38,11 +38,13 @@ public class NaturalistForge {
         CommonPlatformHelperImpl.SOUND_EVENTS.register(bus);
         CommonPlatformHelperImpl.ENTITY_TYPES.register(bus);
         CommonPlatformHelperImpl.POTIONS.register(bus);
+        CommonPlatformHelperImpl.CREATIVE_MODE_TABS.register(bus);
         NaturalistBiomeModifiers.BIOME_MODIFIER_SERIALIZERS.register(bus);
 
         bus.addListener(this::setup);
         bus.addListener(this::register);
         bus.addListener(this::createAttributes);
+        bus.addListener(CommonPlatformHelperImpl::buildContents);
 
         MinecraftForge.EVENT_BUS.register(this);
     }

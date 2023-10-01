@@ -41,7 +41,8 @@ public class NaturalistItems {
     public static final Supplier<Item> SNAIL_BUCKET = CommonPlatformHelper.registerNoFluidMobBucketItem("snail_bucket", NaturalistEntityTypes.SNAIL, () -> Fluids.EMPTY, NaturalistSoundEvents.BUCKET_EMPTY_SNAIL);
     public static final Supplier<Item> SNAIL_SHELL = CommonPlatformHelper.registerItem("snail_shell", () -> new Item(new Item.Properties()));
     public static final Supplier<Item> GRUB = CommonPlatformHelper.registerItem("grub", () -> new Item(new Item.Properties().food(new FoodProperties.Builder().nutrition(1).saturationMod(0.1F).effect(new MobEffectInstance(MobEffects.CONFUSION, 100, 0), 1.0f).build())));
-    public static final Supplier<Item> GRUB_ON_A_STICK = CommonPlatformHelper.registerItem("grub_on_a_stick", () -> new FoodOnAStickItem<>((new Item.Properties()).durability(25), NaturalistEntityTypes.OSTRICH.get(), 7));
+    // TODO: forge is bullshiiti
+    // public static final Supplier<Item> GRUB_ON_A_STICK = CommonPlatformHelper.registerItem("grub_on_a_stick", () -> new FoodOnAStickItem<>((new Item.Properties()).durability(25), NaturalistEntityTypes.OSTRICH.get(), 7));
     public static final Supplier<Item> DRUMSTICK = CommonPlatformHelper.registerItem("drumstick", () -> new Item(new Item.Properties().food(new FoodProperties.Builder().nutrition(1).saturationMod(0.1F).meat().build())));
     public static final Supplier<Item> COOKED_DRUMSTICK = CommonPlatformHelper.registerItem("cooked_drumstick", () -> new Item(new Item.Properties().food(Foods.COOKED_CHICKEN)));
     public static final Supplier<Item> CATFISH_BUCKET = CommonPlatformHelper.registerMobBucketItem("catfish_bucket", NaturalistEntityTypes.CATFISH, () -> Fluids.WATER, () -> SoundEvents.BUCKET_EMPTY_FISH);
