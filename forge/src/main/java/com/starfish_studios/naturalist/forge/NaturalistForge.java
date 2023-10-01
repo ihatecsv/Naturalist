@@ -4,6 +4,7 @@ import com.starfish_studios.naturalist.Naturalist;
 import com.starfish_studios.naturalist.common.entity.*;
 import com.starfish_studios.naturalist.core.platform.forge.CommonPlatformHelperImpl;
 import com.starfish_studios.naturalist.core.registry.NaturalistEntityTypes;
+import com.starfish_studios.naturalist.core.registry.NaturalistItems;
 import com.starfish_studios.naturalist.registry.forge.NaturalistBiomeModifiers;
 import com.starfish_studios.naturalist.registry.forge.NaturalistConfigForge;
 import net.minecraft.world.entity.animal.AbstractFish;
@@ -14,9 +15,12 @@ import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
+import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
+import net.minecraftforge.fml.event.lifecycle.FMLLoadCompleteEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.fml.loading.FMLPaths;
+import net.minecraftforge.registries.RegisterEvent;
 
 @Mod(Naturalist.MOD_ID)
 public class NaturalistForge {
@@ -37,6 +41,7 @@ public class NaturalistForge {
         NaturalistBiomeModifiers.BIOME_MODIFIER_SERIALIZERS.register(bus);
 
         bus.addListener(this::setup);
+        bus.addListener(this::register);
         bus.addListener(this::createAttributes);
 
         MinecraftForge.EVENT_BUS.register(this);
@@ -48,6 +53,10 @@ public class NaturalistForge {
             Naturalist.registerCompostables();
             Naturalist.registerSpawnPlacements();
         });
+    }
+
+    private void register(final FMLLoadCompleteEvent event) {
+        NaturalistItems.addAllToCreativeTab();
     }
 
     private void createAttributes(EntityAttributeCreationEvent event) {

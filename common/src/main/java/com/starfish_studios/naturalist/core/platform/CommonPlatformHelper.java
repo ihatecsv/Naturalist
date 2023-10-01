@@ -35,7 +35,7 @@ public class CommonPlatformHelper {
     }
 
     @ExpectPlatform
-    public static <T extends Item> Supplier<T> registerItem(String name, Supplier<T> item, boolean shouldPutInCreativeTab) {
+    public static <T extends Item> Supplier<T> registerItem(String name, Supplier<T> item) {
         throw new AssertionError();
     }
 
@@ -111,6 +111,11 @@ public class CommonPlatformHelper {
 
     @ExpectPlatform
     public static void registerCompostable(float chance, ItemLike item) {
+        throw new AssertionError();
+    }
+
+    @ExpectPlatform
+    public static void acceptItemToCreativeTab(ItemStack itemStack) {
         throw new AssertionError();
     }
 }

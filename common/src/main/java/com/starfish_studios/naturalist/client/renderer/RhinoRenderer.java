@@ -22,11 +22,12 @@ public class RhinoRenderer extends GeoEntityRenderer<Rhino> {
 
     @Override
     public void render(Rhino animatable, float entityYaw, float partialTick, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight) {
-        super.render(animatable, entityYaw, partialTick, poseStack, bufferSource, packedLight);
         if (animatable.isBaby()) {
             poseStack.scale(0.5F, 0.5F, 0.5F);
+        }else{
+            poseStack.scale(0.9F, 0.9F, 0.9F);
         }
-        poseStack.scale(0.9F, 0.9F, 0.9F);
+        super.render(animatable, entityYaw, partialTick, poseStack, bufferSource, packedLight);
     }
 
    public RenderType getRenderType(Rhino animatable, float partialTicks, PoseStack stack, @Nullable MultiBufferSource renderTypeBuffer, @Nullable VertexConsumer vertexBuilder, int packedLightIn, ResourceLocation textureLocation) {

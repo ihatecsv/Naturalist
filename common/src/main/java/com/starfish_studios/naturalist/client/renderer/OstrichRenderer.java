@@ -22,13 +22,13 @@ public class OstrichRenderer extends GeoEntityRenderer<Ostrich> {
 
     @Override
     public void render(Ostrich animatable, float entityYaw, float partialTick, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight) {
-        super.render(animatable, entityYaw, partialTick, poseStack, bufferSource, packedLight);
         if (animatable.isBaby()) {
             poseStack.scale(0.5F, 0.5F, 0.5F);
         }
         else {
             poseStack.scale(1.0F, 1.0F, 1.0F);
         }
+        super.render(animatable, entityYaw, partialTick, poseStack, bufferSource, packedLight);
     }
 
    public RenderType getRenderType(Ostrich animatable, float partialTicks, PoseStack stack, @Nullable MultiBufferSource renderTypeBuffer, @Nullable VertexConsumer vertexBuilder, int packedLightIn, ResourceLocation textureLocation) {

@@ -29,8 +29,8 @@ ordering = "NONE"
 side = "BOTH"
 
 [[dependencies.naturalist]]
-modId="geckolib3"
+modId="geckolib"
 mandatory=true
-versionRange="[3.1.9,)"
+versionRange="[4.0.0,)"
 ordering="NONE"
 side="BOTH"

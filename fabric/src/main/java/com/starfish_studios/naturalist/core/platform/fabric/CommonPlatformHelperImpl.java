@@ -42,35 +42,36 @@ public class CommonPlatformHelperImpl {
         return () -> registry;
     }
 
-    public static <T extends Item> Supplier<T> registerItem(String name, Supplier<T> item, boolean shouldPutInCreativeTab) {
+    public static <T extends Item> Supplier<T> registerItem(String name, Supplier<T> item) {
         T registry = Registry.register(BuiltInRegistries.ITEM, new ResourceLocation(Naturalist.MOD_ID, name), item.get());
-
-        if(shouldPutInCreativeTab) {
+        /*
+        if (shouldPutInCreativeTab) {
             ItemGroupEvents.modifyEntriesEvent(Naturalist.TAB_KEY).register(content -> {
-                // content.accept(item.get());
+                content.accept(item.get());
             });
         }
+         */
         return () -> registry;
     }
 
     public static <T extends Mob> Supplier<SpawnEggItem> registerSpawnEggItem(String name, Supplier<EntityType<T>> entityType, int backgroundColor, int highlightColor) {
-        return registerItem(name, () -> new SpawnEggItem(entityType.get(), backgroundColor, highlightColor, new Item.Properties()), true);
+        return registerItem(name, () -> new SpawnEggItem(entityType.get(), backgroundColor, highlightColor, new Item.Properties()));
     }
 
     public static Supplier<Item> registerNoFluidMobBucketItem(String name, Supplier<? extends EntityType<?>> entitySupplier, Supplier<? extends Fluid> fluidSupplier, Supplier<? extends SoundEvent> soundSupplier) {
-        return registerItem(name, () ->  new NoFluidMobBucketItem(entitySupplier, fluidSupplier.get(), soundSupplier.get(), new Item.Properties().stacksTo(1)), true);
+        return registerItem(name, () ->  new NoFluidMobBucketItem(entitySupplier, fluidSupplier.get(), soundSupplier.get(), new Item.Properties().stacksTo(1)));
     }
 
     public static Supplier<Item> registerMobBucketItem(String name, Supplier<? extends EntityType<?>> entitySupplier, Supplier<? extends Fluid> fluidSupplier, Supplier<? extends SoundEvent> soundSupplier) {
-        return registerItem(name, () ->  new MobBucketItem(entitySupplier.get(), fluidSupplier.get(), soundSupplier.get(), new Item.Properties().stacksTo(1)), true);
+        return registerItem(name, () ->  new MobBucketItem(entitySupplier.get(), fluidSupplier.get(), soundSupplier.get(), new Item.Properties().stacksTo(1)));
     }
 
     public static Supplier<Item> registerCaughtMobItem(String name, Supplier<? extends EntityType<?>> entitySupplier, Supplier<? extends Fluid> fluidSupplier, Supplier<? extends SoundEvent> soundSupplier) {
-        return registerItem(name, () ->  new CaughtMobItem(entitySupplier.get(), fluidSupplier.get(), soundSupplier.get(), new Item.Properties().stacksTo(1)), true);
+        return registerItem(name, () ->  new CaughtMobItem(entitySupplier.get(), fluidSupplier.get(), soundSupplier.get(), new Item.Properties().stacksTo(1)));
     }
 
     public static Supplier<Item> registerCaughtMobItem(String name, Supplier<? extends EntityType<?>> entitySupplier, Supplier<? extends Fluid> fluidSupplier, Supplier<? extends SoundEvent> soundSupplier, int variantAmount) {
-        return registerItem(name, () ->  new CaughtMobWithVariantsItem(entitySupplier.get(), fluidSupplier.get(), soundSupplier.get(), variantAmount, new Item.Properties().stacksTo(1)), true);
+        return registerItem(name, () ->  new CaughtMobWithVariantsItem(entitySupplier.get(), fluidSupplier.get(), soundSupplier.get(), variantAmount, new Item.Properties().stacksTo(1)));
     }
 
     public static <T extends SoundEvent> Supplier<T> registerSoundEvent(String name, Supplier<T> soundEvent) {
@@ -122,5 +123,10 @@ public class CommonPlatformHelperImpl {
 
     public static void registerCompostable(float chance, ItemLike item) {
         CompostingChanceRegistry.INSTANCE.add(item, chance);
+    }
+    public static void acceptItemToCreativeTab(ItemStack itemStack) {
+        ItemGroupEvents.modifyEntriesEvent(Naturalist.TAB_KEY).register(content -> {
+            content.accept(itemStack);
+        });
     }
 }

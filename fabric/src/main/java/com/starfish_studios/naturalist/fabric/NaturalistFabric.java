@@ -4,6 +4,7 @@ import com.google.common.base.Preconditions;
 import com.starfish_studios.naturalist.Naturalist;
 import com.starfish_studios.naturalist.common.entity.*;
 import com.starfish_studios.naturalist.core.registry.NaturalistEntityTypes;
+import com.starfish_studios.naturalist.core.registry.NaturalistItems;
 import com.starfish_studios.naturalist.core.registry.NaturalistTags;
 import com.starfish_studios.naturalist.core.registry.fabric.NaturalistConfigFabric;
 import me.shedaniel.autoconfig.AutoConfig;
@@ -41,6 +42,8 @@ public class NaturalistFabric implements ModInitializer {
         Naturalist.registerBrewingRecipes();
         Naturalist.registerCompostables();
         Naturalist.registerSpawnPlacements();
+
+        NaturalistItems.addAllToCreativeTab();
     }
 
 

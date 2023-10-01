@@ -27,10 +27,13 @@ public class BearRenderer extends GeoEntityRenderer<Bear> {
 
     @Override
     public void render(Bear animatable, float entityYaw, float partialTick, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight) {
-        super.render(animatable, entityYaw, partialTick, poseStack, bufferSource, packedLight);
         if (animatable.isBaby()) {
             poseStack.scale(0.5F, 0.5F, 0.5F);
         }
+        else {
+            poseStack.scale(1.0F, 1.0F, 1.0F);
+        }
+        super.render(animatable, entityYaw, partialTick, poseStack, bufferSource, packedLight);
     }
 
     @Override

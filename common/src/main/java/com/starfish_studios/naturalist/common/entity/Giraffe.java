@@ -223,7 +223,6 @@ public class Giraffe extends Animal implements GeoEntity {
         LivingEntity livingEntity = this.getControllingPassenger();
         if (!this.isVehicle() || livingEntity == null) {
             // this.flyingSpeed = 0.02f;
-            this.setSpeed(0.02f);
             super.travel(travelVector);
             return;
         }
@@ -235,14 +234,13 @@ public class Giraffe extends Animal implements GeoEntity {
         float f = livingEntity.xxa * 0.5f;
         float g = livingEntity.zza;
         // this.flyingSpeed = this.getSpeed() * 0.1f;
-        this.setSpeed(this.getSpeed() * 0.1f);
         if (this.isControlledByLocalInstance()) {
             this.setSpeed((float)this.getAttributeValue(Attributes.MOVEMENT_SPEED));
             super.travel(new Vec3(f, travelVector.y, g));
         } else if (livingEntity instanceof Player) {
             this.setDeltaMovement(Vec3.ZERO);
         }
-        this.calculateEntityAnimation( false);
+        this.calculateEntityAnimation(false);
         this.tryCheckInsideBlocks();
     }
 
